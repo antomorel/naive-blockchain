@@ -1,0 +1,21 @@
+{
+  "name": "@blockchain/ledger-api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": {
+      "types": "./src/*.ts",
+      "import": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "test": "cd ../.. && vitest run packages/ledger-api/test"
+  },
+  "dependencies": {
+    "@blockchain/core": "workspace:*",
+    "effect": "beta"
+  }
+}

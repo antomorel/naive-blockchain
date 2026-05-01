@@ -1,0 +1,24 @@
+{
+  "name": "@blockchain/wallet",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "test": "cd ../.. && vitest run packages/wallet/test"
+  },
+  "dependencies": {
+    "@blockchain/core": "workspace:*",
+    "@blockchain/ledger-api": "workspace:*",
+    "@noble/ed25519": "^3.1.0",
+    "@noble/hashes": "^2.2.0",
+    "effect": "beta"
+  }
+}

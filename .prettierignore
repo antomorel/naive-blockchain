@@ -1,0 +1,20 @@
+# Build outputs
+**/dist
+**/build
+**/.output
+
+# Dependencies
+**/node_modules
+
+# Coverage
+**/coverage
+
+# Lock files
+pnpm-lock.yaml
+
+# Generated files
+**/*.gen.ts
+**/*.gen.tsx
+
+# Other
+repositories

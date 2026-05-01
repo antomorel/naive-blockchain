@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "nrwl.angular-console",
+    "nicholasones.oxc-vscode",
+    "dbaeumer.vscode-eslint",
+    "vitest.vitest-explorer"
+  ]
+}

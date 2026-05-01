@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@blockchain/core/*": ["./packages/core/src/*.ts"],
+      "@blockchain/wallet": ["./packages/wallet/src/index.ts"],
+      "@blockchain/ledger": ["./packages/ledger/src/index.ts"],
+      "@blockchain/ledger-api": ["./packages/ledger-api/src/index.ts"]
+    }
+  },
+  "include": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/wallet"
+    },
+    {
+      "path": "./packages/ledger"
+    },
+    {
+      "path": "./packages/ledger-api"
+    }
+  ]
+}

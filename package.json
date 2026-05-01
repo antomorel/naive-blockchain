@@ -1,0 +1,37 @@
+{
+  "name": "@blockchain/source",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "effect:patch": "effect-language-service patch",
+    "test": "vitest run",
+    "test:verbose": "VERBOSE=1 vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -b tsconfig.json",
+    "lint": "eslint packages --ext .ts,.tsx",
+    "lint:fix": "eslint packages --ext .ts,.tsx --fix",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,json}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\"",
+    "clean": "pnpm --recursive --parallel run clean"
+  },
+  "dependencies": {
+    "effect": "beta"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.85.1",
+    "@types/node": "^22.0.0",
+    "@effect/vitest": "beta",
+    "@eslint/js": "^9.39.2",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.7.4",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.0"
+  }
+}
