@@ -1,21 +1,21 @@
-import type { Address } from "@blockchain/core/primitives/Address"
-import type { TransactionId } from "@blockchain/core/primitives/TransactionId"
-import { makeTransactionId } from "@blockchain/core/Transaction/makeTransactionId"
+import type { Address } from "@blockchain/core/primitives/Address";
+import type { TransactionId } from "@blockchain/core/primitives/TransactionId";
+import { makeTransactionId } from "@blockchain/core/Transaction/makeTransactionId";
 import {
   Transaction,
   TransactionInput,
   TransactionOutput
-} from "@blockchain/core/Transaction/Transaction"
-import type { UTXO } from "@blockchain/core/UTXO/UTXO"
-import { Array, Boolean, Data, Effect } from "effect"
-import type { PrivateKey } from "../domain/KeyPair/PrivateKey"
-import * as CoinSelectionService from "./CoinSelectionService.js"
-import * as WalletKeyPairService from "./crypto/WalletKeyPairService.js"
-import * as WalletSignatureService from "./crypto/WalletSignatureService.js"
+} from "@blockchain/core/Transaction/Transaction";
+import type { UTXO } from "@blockchain/core/UTXO/UTXO";
+import { Array, Boolean, Data, Effect } from "effect";
+import type { PrivateKey } from "../domain/KeyPair/PrivateKey";
+import * as CoinSelectionService from "./CoinSelectionService.js";
+import * as WalletKeyPairService from "./crypto/WalletKeyPairService.js";
+import * as WalletSignatureService from "./crypto/WalletSignatureService.js";
 
 class PrivateKeyNotMatchError extends Data.TaggedError("PrivateKeyNotMatchError")<{
-  referencedAddress: Address
-  derivedAddress: Address
+  referencedAddress: Address;
+  derivedAddress: Address;
 }> {}
 
 const signUtxo = Effect.fn("signUtxo")(function* (
@@ -23,27 +23,27 @@ const signUtxo = Effect.fn("signUtxo")(function* (
   utxo: UTXO,
   privateKey: PrivateKey
 ) {
-  const { address: derivedAddress } = yield* WalletKeyPairService.keyPairFromPrivateKey(privateKey)
+  const { address: derivedAddress } = yield* WalletKeyPairService.keyPairFromPrivateKey(privateKey);
 
   if (utxo.address !== derivedAddress) {
     return yield* new PrivateKeyNotMatchError({
       referencedAddress: utxo.address,
       derivedAddress
-    })
+    });
   }
 
-  return yield* WalletSignatureService.signString(transactionId, privateKey)
-})
+  return yield* WalletSignatureService.signString(transactionId, privateKey);
+});
 
 export const sendTransaction = Effect.fn("send")(function* (
   transactionOutput: TransactionOutput,
   privateKey: PrivateKey
 ) {
   const { address: sourceAddress, publicKey } =
-    yield* WalletKeyPairService.keyPairFromPrivateKey(privateKey)
+    yield* WalletKeyPairService.keyPairFromPrivateKey(privateKey);
 
   const { selection: selectedUtxos, leftOver } =
-    yield* CoinSelectionService.findForAmountAndAddress(transactionOutput.amount, sourceAddress)
+    yield* CoinSelectionService.findForAmountAndAddress(transactionOutput.amount, sourceAddress);
 
   const transactionOutputs = Boolean.match(leftOver === 0, {
     onTrue: () => Array.make(transactionOutput),
@@ -51,13 +51,13 @@ export const sendTransaction = Effect.fn("send")(function* (
       const transactionOutputToSource = TransactionOutput.make({
         address: sourceAddress,
         amount: leftOver
-      })
+      });
 
-      return Array.make(transactionOutput, transactionOutputToSource)
+      return Array.make(transactionOutput, transactionOutputToSource);
     }
-  })
+  });
 
-  const transactionId = yield* makeTransactionId(selectedUtxos, transactionOutputs)
+  const transactionId = yield* makeTransactionId(selectedUtxos, transactionOutputs);
 
   const signedInputs = yield* Effect.forEach(
     selectedUtxos,
@@ -73,11 +73,11 @@ export const sendTransaction = Effect.fn("send")(function* (
         )
       ),
     { concurrency: "unbounded" }
-  )
+  );
 
   return Transaction.make({
     id: transactionId,
     inputs: signedInputs,
     outputs: transactionOutputs
-  })
-})
+  });
+});

@@ -1,12 +1,12 @@
-import * as HashService from "@blockchain/core/crypto/HashService"
-import { BlockHash } from "@blockchain/core/primitives/BlockHash"
-import { BlockHeight } from "@blockchain/core/primitives/BlockHeight"
-import type { Difficulty } from "@blockchain/core/primitives/Difficulty"
-import { Nonce } from "@blockchain/core/primitives/Nonce"
-import type { Timestamp } from "@blockchain/core/primitives/Timestamp"
-import { Transaction } from "@blockchain/core/Transaction/Transaction"
-import { DateTime, Duration, Effect, Option } from "effect"
-import { Block } from "../domain/Block.js"
+import * as HashService from "@blockchain/core/crypto/HashService";
+import { BlockHash } from "@blockchain/core/primitives/BlockHash";
+import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
+import type { Difficulty } from "@blockchain/core/primitives/Difficulty";
+import { Nonce } from "@blockchain/core/primitives/Nonce";
+import type { Timestamp } from "@blockchain/core/primitives/Timestamp";
+import type { Transaction } from "@blockchain/core/Transaction/Transaction";
+import { DateTime, Duration, Effect, Option } from "effect";
+import { Block } from "../domain/Block.js";
 
 export const computeHash = Effect.fn("computeBlockHash")(function* ({
   height,
@@ -16,12 +16,12 @@ export const computeHash = Effect.fn("computeBlockHash")(function* ({
   difficulty,
   nonce
 }: {
-  height: BlockHeight
-  previousHash: Option.Option<BlockHash>
-  timestamp: Timestamp
-  transactions: ReadonlyArray<Transaction>
-  difficulty: Difficulty
-  nonce: Nonce
+  height: BlockHeight;
+  previousHash: Option.Option<BlockHash>;
+  timestamp: Timestamp;
+  transactions: ReadonlyArray<Transaction>;
+  difficulty: Difficulty;
+  nonce: Nonce;
 }) {
   const blockData = JSON.stringify({
     height,
@@ -30,12 +30,12 @@ export const computeHash = Effect.fn("computeBlockHash")(function* ({
     transactions,
     difficulty,
     nonce
-  })
+  });
 
-  const hash = yield* HashService.sha256String(blockData)
+  const hash = yield* HashService.sha256String(blockData);
 
-  return BlockHash.make(hash)
-})
+  return BlockHash.make(hash);
+});
 
 export const mine = Effect.fn("mineBlock")(function* ({
   height,
@@ -44,13 +44,13 @@ export const mine = Effect.fn("mineBlock")(function* ({
   transactions,
   difficulty
 }: {
-  height: BlockHeight
-  previousHash: Option.Option<BlockHash>
-  timestamp: Timestamp
-  transactions: ReadonlyArray<Transaction>
-  difficulty: Difficulty
+  height: BlockHeight;
+  previousHash: Option.Option<BlockHash>;
+  timestamp: Timestamp;
+  transactions: ReadonlyArray<Transaction>;
+  difficulty: Difficulty;
 }) {
-  let nonce = Nonce.make(0)
+  let nonce = Nonce.make(0);
 
   while (true) {
     const hash = yield* computeHash({
@@ -60,7 +60,7 @@ export const mine = Effect.fn("mineBlock")(function* ({
       transactions,
       difficulty,
       nonce
-    })
+    });
 
     if (HashService.hashMatchesDifficulty(hash, difficulty)) {
       return new Block({
@@ -73,42 +73,42 @@ export const mine = Effect.fn("mineBlock")(function* ({
           nonce
         },
         transactions
-      })
+      });
     }
 
-    nonce++
+    nonce++;
   }
-})
+});
 
 const isValidTimestamp = (previousBlockTimestamp: Timestamp, nextBlockTimestamp: Timestamp) =>
   Effect.gen(function* () {
-    const elapsed = DateTime.distance(previousBlockTimestamp, nextBlockTimestamp)
+    const elapsed = DateTime.distance(previousBlockTimestamp, nextBlockTimestamp);
 
-    if (elapsed < Duration.minutes(1)) {
-      return false
+    if (Duration.isLessThan(elapsed, Duration.minutes(1))) {
+      return false;
     }
 
-    const now = yield* DateTime.now
-    if (DateTime.distance(now, nextBlockTimestamp) < Duration.minutes(1)) {
-      return false
+    const now = yield* DateTime.now;
+    if (DateTime.distance(nextBlockTimestamp, now).pipe(Duration.isLessThan(Duration.minutes(1)))) {
+      return false;
     }
 
-    return true
-  })
+    return true;
+  });
 
 export const isNextValid = Effect.fn("isNextBlockValid")(function* (
   previousBlock: Block,
   nextBlock: Block
 ) {
   if (previousBlock.height + 1 !== nextBlock.height) {
-    return false
+    return false;
   }
 
   if (
     Option.isNone(nextBlock.header.previousHash) ||
     previousBlock.hash !== nextBlock.header.previousHash.value
   ) {
-    return false
+    return false;
   }
 
   const nextBlockExpectedHash = yield* computeHash({
@@ -118,11 +118,11 @@ export const isNextValid = Effect.fn("isNextBlockValid")(function* (
     transactions: nextBlock.transactions,
     difficulty: previousBlock.header.difficulty,
     nonce: nextBlock.header.nonce
-  })
+  });
 
   if (nextBlockExpectedHash !== nextBlock.hash) {
-    return false
+    return false;
   }
 
-  return yield* isValidTimestamp(previousBlock.header.timestamp, nextBlock.header.timestamp)
-})
+  return yield* isValidTimestamp(previousBlock.header.timestamp, nextBlock.header.timestamp);
+});

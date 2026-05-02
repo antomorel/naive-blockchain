@@ -1,4 +1,4 @@
-import { Schema } from "effect"
+import { Schema } from "effect";
 
 export class InternalServerError extends Schema.ErrorClass<InternalServerError>(
   "InternalServerError"

@@ -1,8 +1,8 @@
-import { Address } from "@blockchain/core/primitives/Address"
-import { UTXO } from "@blockchain/core/UTXO/UTXO"
-import { Schema } from "effect"
-import { Rpc, RpcGroup } from "effect/unstable/rpc"
-import { InternalServerError } from "../errors/apiErrors"
+import { Address } from "@blockchain/core/primitives/Address";
+import { UTXO } from "@blockchain/core/UTXO/UTXO";
+import { Schema } from "effect";
+import { Rpc, RpcGroup } from "effect/unstable/rpc";
+import { InternalServerError } from "../errors/apiErrors";
 
 const FindAllByAddressOrderedByAmountDesc = Rpc.make("findAllByAddressOrderedByAmountDesc", {
   success: Schema.Array(UTXO),
@@ -10,6 +10,6 @@ const FindAllByAddressOrderedByAmountDesc = Rpc.make("findAllByAddressOrderedByA
   payload: {
     address: Address
   }
-})
+});
 
-export const UTXORpcs = RpcGroup.make(FindAllByAddressOrderedByAmountDesc)
+export const UTXORpcs = RpcGroup.make(FindAllByAddressOrderedByAmountDesc);

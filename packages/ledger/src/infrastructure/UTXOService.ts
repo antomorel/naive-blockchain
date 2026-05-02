@@ -1,7 +1,7 @@
-import { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex"
-import type { Transaction } from "@blockchain/core/Transaction/Transaction"
-import { Array, Effect } from "effect"
-import { UTXOSet } from "../domain/UTXOSet"
+import { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex";
+import type { Transaction } from "@blockchain/core/Transaction/Transaction";
+import { Array, Effect } from "effect";
+import { UTXOSet } from "../domain/UTXOSet.js";
 
 export const updateAfterNewTransaction = Effect.fn("updateAfterNewTransaction")(function* (
   newTransactions: ReadonlyArray<Transaction>
@@ -13,14 +13,14 @@ export const updateAfterNewTransaction = Effect.fn("updateAfterNewTransaction")(
       address: txOut.address,
       amount: txOut.amount
     }))
-  )
+  );
 
   const consumedTxOuts = Array.flatMap(newTransactions, (t) =>
     Array.map(t.inputs, (txIn) => ({
       txOutputId: txIn.txOutputId,
       txOutputIndex: txIn.txOutputIndex
     }))
-  )
+  );
 
   yield* UTXOSet.use(({ add, remove }) =>
     Effect.all(
@@ -30,5 +30,5 @@ export const updateAfterNewTransaction = Effect.fn("updateAfterNewTransaction")(
       },
       { concurrency: 2 }
     )
-  )
-})
+  );
+});
