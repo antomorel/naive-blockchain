@@ -7,6 +7,8 @@ export const TransactionRpcHandlers = TransactionRpcs.toLayer({
   sendTransaction: ({ transaction }) =>
     sendTransaction(transaction).pipe(
       Effect.catchTags({
+        BlockchainPersistenceError: () =>
+          Effect.fail(new InternalServerError({ message: "An unexpected error occurred" })),
         UTXOPersistenceError: () =>
           Effect.fail(new InternalServerError({ message: "An unexpected error occurred" })),
         InvalidTransactionOutputsError: () =>

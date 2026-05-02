@@ -1,7 +1,7 @@
 import type { Address } from "@blockchain/core/primitives/Address";
 import { Amount } from "@blockchain/core/primitives/Amount";
-import type { TransactionId } from "@blockchain/core/primitives/TransactionId";
-import type { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex";
+import { TransactionId } from "@blockchain/core/primitives/TransactionId";
+import { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex";
 import type { UTXO } from "@blockchain/core/UTXO/UTXO";
 import {
   Array,
@@ -16,25 +16,33 @@ import {
   Order,
   pipe,
   Result,
+  Schema,
   Tuple
 } from "effect";
-import type { TransactionInput } from "../../../core/src/Transaction/Transaction";
+import type { Transaction, TransactionInput } from "../../../core/src/Transaction/Transaction";
 
-class UTXONotFoundError extends Data.TaggedError("UTXONotFoundError")<{
-  transactionId: TransactionId;
-  txOutputIndex: TxOutputIndex;
-}> {}
+class UTXONotFoundError extends Schema.TaggedErrorClass<UTXONotFoundError>()("UTXONotFoundError", {
+  transactionId: TransactionId,
+  txOutputIndex: TxOutputIndex
+}) {}
 
-class UTXOPersistenceError extends Data.TaggedError("UTXOPersistenceError")<{
-  reason: string;
-  cause: unknown;
-}> {}
+export class UTXOPersistenceError extends Schema.TaggedErrorClass<UTXOPersistenceError>()(
+  "UTXOPersistenceError",
+  {
+    reason: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
 
 export interface UTXOSet {
   readonly find: (
     transactionId: TransactionId,
     txOutputIndex: TxOutputIndex
   ) => Effect.Effect<UTXO, UTXONotFoundError | UTXOPersistenceError>;
+
+  readonly findMany: (
+    inputs: { txOutputId: TransactionId; txOutputIndex: TxOutputIndex }[]
+  ) => Effect.Effect<ReadonlyArray<UTXO>, UTXOPersistenceError>;
 
   readonly add: (utxos: ReadonlyArray<UTXO>) => Effect.Effect<void, UTXOPersistenceError>;
 
@@ -43,6 +51,11 @@ export interface UTXOSet {
       txOutputId: TransactionId;
       txOutputIndex: TxOutputIndex;
     }>
+  ) => Effect.Effect<void, UTXOPersistenceError>;
+
+  readonly reverseTransactions: (
+    transactions: ReadonlyArray<Transaction>,
+    consumedUtxos: ReadonlyArray<UTXO>
   ) => Effect.Effect<void, UTXOPersistenceError>;
 
   readonly getInputsTotalValue: (
@@ -75,6 +88,16 @@ export class InMemoryUTXOSet implements UTXOSet {
         onSome: (utxo) => Effect.succeed(utxo)
       })
     );
+
+  findMany = (inputs: { txOutputId: TransactionId; txOutputIndex: TxOutputIndex }[]) => {
+    const utxos = Array.filterMap(inputs, ({ txOutputId, txOutputIndex }) =>
+      HashMap.get(this.db, new DbKey({ transactionId: txOutputId, txOutputIndex })).pipe(
+        Result.fromOption(() => Result.failVoid)
+      )
+    );
+
+    return Effect.succeed(utxos);
+  };
 
   add = (utxos: ReadonlyArray<UTXO>) => {
     const entries = Array.map(utxos, (utxo) =>
@@ -148,4 +171,29 @@ export class InMemoryUTXOSet implements UTXOSet {
       Array.sortWith((utxo) => utxo.amount, Order.flip(Order.Number)),
       Effect.succeed
     );
+
+  reverseTransactions = (
+    transactions: ReadonlyArray<Transaction>,
+    consumedUtxos: ReadonlyArray<UTXO>
+  ) => {
+    const createdUtxoKeys = Array.flatMap(transactions, (tx) =>
+      Array.map(
+        tx.outputs,
+        (_, index) => new DbKey({ transactionId: tx.id, txOutputIndex: TxOutputIndex.make(index) })
+      )
+    );
+
+    this.db = HashMap.removeMany(this.db, createdUtxoKeys);
+
+    const consumedEntries = Array.map(consumedUtxos, (utxo) =>
+      Tuple.make(
+        new DbKey({ transactionId: utxo.txOutputId, txOutputIndex: utxo.txOutputIndex }),
+        utxo
+      )
+    );
+
+    this.db = HashMap.setMany(this.db, consumedEntries);
+
+    return Effect.void;
+  };
 }

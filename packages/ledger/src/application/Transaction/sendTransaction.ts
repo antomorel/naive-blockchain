@@ -1,15 +1,17 @@
 import type { Transaction } from "@blockchain/core/Transaction/Transaction";
-import { Boolean, Data, Effect, pipe } from "effect";
+import { Boolean, Effect, pipe, Schema } from "effect";
 import { BlockchainRepository } from "../../domain/BlockchainRepository";
 import * as TransactionService from "../../infrastructure/TransactionService";
 
-export class InvalidTransactionInputsError extends Data.TaggedError(
-  "InvalidTransactionInputsError"
-)<{}> {}
+export class InvalidTransactionInputsError extends Schema.TaggedErrorClass<InvalidTransactionInputsError>()(
+  "InvalidTransactionInputsError",
+  {}
+) {}
 
-export class InvalidTransactionOutputsError extends Data.TaggedError(
-  "InvalidTransactionOutputsError"
-)<{}> {}
+export class InvalidTransactionOutputsError extends Schema.TaggedErrorClass<InvalidTransactionOutputsError>()(
+  "InvalidTransactionOutputsError",
+  {}
+) {}
 
 export const sendTransaction = Effect.fn("sendTransaction")(function* (transaction: Transaction) {
   const areTxInputValid = yield* pipe(

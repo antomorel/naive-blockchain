@@ -1,15 +1,27 @@
 import type { BlockHash } from "@blockchain/core/primitives/BlockHash";
 import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
 import type { Transaction } from "@blockchain/core/Transaction/Transaction";
-import { Array, Context, Data, Effect, Layer, pipe, Record } from "effect";
+import { Array, Context, Effect, Layer, Option, pipe, Record, Schema } from "effect";
 import type { Block } from "./Block";
 import { GenesisBlock } from "./Block";
 import { Blockchain } from "./Blockchain";
 
-export class BlockchainPersistenceError extends Data.TaggedError("BlockchainPersistenceError")<{
-  reason: string;
-  cause: unknown;
-}> {}
+export class BlockchainPersistenceError extends Schema.TaggedErrorClass<BlockchainPersistenceError>()(
+  "BlockchainPersistenceError",
+  {
+    reason: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
+export class CannotRemoveGenesisBlockError extends Schema.TaggedErrorClass<CannotRemoveGenesisBlockError>()(
+  "CannotRemoveGenesisBlockError",
+  {}
+) {}
+
+export class CanOnlyRemoveLastBlockError extends Schema.TaggedErrorClass<CanOnlyRemoveLastBlockError>()(
+  "CanOnlyRemoveLastBlockError",
+  {}
+) {}
 
 export interface BlockchainRepository {
   readonly getBlockchain: () => Effect.Effect<Blockchain>;
@@ -17,8 +29,17 @@ export interface BlockchainRepository {
     transaction: Transaction
   ) => Effect.Effect<Blockchain, BlockchainPersistenceError>;
   readonly addBlock: (block: Block) => Effect.Effect<Blockchain, BlockchainPersistenceError>;
+  readonly removeLastBlock: (
+    lastBlockHash: BlockHash
+  ) => Effect.Effect<
+    Blockchain,
+    BlockchainPersistenceError | CannotRemoveGenesisBlockError | CanOnlyRemoveLastBlockError
+  >;
   readonly clearMinedTransactions: (
     transactionIds: ReadonlyArray<Transaction["id"]>
+  ) => Effect.Effect<Blockchain, BlockchainPersistenceError>;
+  readonly restoreMempool: (
+    transactions: ReadonlyArray<Transaction>
   ) => Effect.Effect<Blockchain, BlockchainPersistenceError>;
 }
 
@@ -70,6 +91,44 @@ export class InMemoryBlockchainRepository implements BlockchainRepository {
     this.blockchain = new Blockchain({
       ...this.blockchain,
       mempool: newPool
+    });
+
+    return Effect.succeed(this.blockchain);
+  };
+
+  removeLastBlock = (lastBlockHash: BlockHash) =>
+    Effect.gen({ self: this }, function* () {
+      if (this.blockchain.height === BlockHeight.make(0)) {
+        return yield* new CannotRemoveGenesisBlockError();
+      }
+
+      const lastBlock = yield* Blockchain.getLatestBlock(this.blockchain);
+
+      if (lastBlock.hash !== lastBlockHash) {
+        return yield* new CanOnlyRemoveLastBlockError();
+      }
+
+      const previousHash = lastBlock.header.previousHash;
+      if (Option.isNone(previousHash)) {
+        return yield* new CannotRemoveGenesisBlockError();
+      }
+
+      const newBlocks = Record.remove(this.blockchain.blocks, lastBlock.hash);
+
+      this.blockchain = new Blockchain({
+        ...this.blockchain,
+        blocks: newBlocks,
+        latestBlockHash: previousHash.value,
+        height: BlockHeight.make(lastBlock.height - 1)
+      });
+
+      return this.blockchain;
+    });
+
+  restoreMempool = (transactions: ReadonlyArray<Transaction>) => {
+    this.blockchain = new Blockchain({
+      ...this.blockchain,
+      mempool: transactions
     });
 
     return Effect.succeed(this.blockchain);

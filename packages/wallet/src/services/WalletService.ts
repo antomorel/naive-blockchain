@@ -1,4 +1,4 @@
-import type { Address } from "@blockchain/core/primitives/Address";
+import { Address } from "@blockchain/core/primitives/Address";
 import type { TransactionId } from "@blockchain/core/primitives/TransactionId";
 import { makeTransactionId } from "@blockchain/core/Transaction/makeTransactionId";
 import {
@@ -7,16 +7,19 @@ import {
   TransactionOutput
 } from "@blockchain/core/Transaction/Transaction";
 import type { UTXO } from "@blockchain/core/UTXO/UTXO";
-import { Array, Boolean, Data, Effect } from "effect";
+import { Array, Boolean, Effect, Schema } from "effect";
 import type { PrivateKey } from "../domain/KeyPair/PrivateKey";
 import * as CoinSelectionService from "./CoinSelectionService.js";
 import * as WalletKeyPairService from "./crypto/WalletKeyPairService.js";
 import * as WalletSignatureService from "./crypto/WalletSignatureService.js";
 
-class PrivateKeyNotMatchError extends Data.TaggedError("PrivateKeyNotMatchError")<{
-  referencedAddress: Address;
-  derivedAddress: Address;
-}> {}
+class PrivateKeyNotMatchError extends Schema.TaggedErrorClass<PrivateKeyNotMatchError>()(
+  "PrivateKeyNotMatchError",
+  {
+    referencedAddress: Address,
+    derivedAddress: Address
+  }
+) {}
 
 const signUtxo = Effect.fn("signUtxo")(function* (
   transactionId: TransactionId,
