@@ -1,6 +1,6 @@
 import { BlockHash } from "@blockchain/core/primitives/BlockHash";
 import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
-import type { Transaction } from "@blockchain/core/Transaction/Transaction";
+import { Transaction } from "@blockchain/core/Transaction/Transaction";
 import { Effect, Option, Record, Schema } from "effect";
 import * as BlockchainService from "../infrastructure/BlockchainService.js";
 import * as BlockService from "../infrastructure/BlockService.js";
@@ -10,18 +10,13 @@ export class Blockchain extends Schema.Class<Blockchain>("Blockchain")({
   blocks: Schema.Record(BlockHash, Block),
   latestBlockHash: BlockHash,
   height: BlockHeight,
-  genesisBlockHash: BlockHash
+  genesisBlockHash: BlockHash,
+  mempool: Schema.Array(Transaction)
 }) {
-  static generateNextBlock = (self: Blockchain) => (transactions: ReadonlyArray<Transaction>) =>
-    Effect.gen(function* () {
-      const previousBlock = Record.get(self.blocks, self.latestBlockHash);
-
-      if (Option.isNone(previousBlock)) {
-        return yield* Effect.die("No previous block found");
-      }
-
-      return yield* Block.makeNext(previousBlock.value, transactions);
-    });
+  static getLatestBlock = (self: Blockchain) =>
+    Record.get(self.blocks, self.latestBlockHash).pipe(
+      Option.match({ onSome: Effect.succeed, onNone: () => Effect.die("No previous block found") })
+    );
 
   static isValid = (self: Blockchain) =>
     Effect.gen(function* () {
@@ -47,10 +42,6 @@ export class Blockchain extends Schema.Class<Blockchain>("Blockchain")({
         }
 
         lastBlock = previousBlock.value;
-      }
-
-      if (lastBlock.height !== 0) {
-        return false;
       }
 
       return JSON.stringify(lastBlock) === JSON.stringify(GenesisBlock);

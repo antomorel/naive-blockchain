@@ -103,7 +103,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false when UTXO not found", () =>
       Effect.gen(function* () {
@@ -131,7 +132,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when public key does not match UTXO address", () =>
       Effect.gen(function* () {
@@ -172,7 +174,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false for invalid signature", () =>
       Effect.gen(function* () {
@@ -207,7 +210,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 
   describe("areTxOutputsValid", () => {
@@ -253,7 +257,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false when output total exceeds input total", () =>
       Effect.gen(function* () {
@@ -297,7 +302,8 @@ describe("TransactionService", () => {
         );
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 
   describe("isCoinbaseTxValid", () => {
@@ -336,7 +342,8 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false when transaction ID is incorrect", () =>
       Effect.gen(function* () {
@@ -363,7 +370,8 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when coinbase has multiple inputs", () =>
       Effect.gen(function* () {
@@ -402,7 +410,8 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when input index does not match block height", () =>
       Effect.gen(function* () {
@@ -439,7 +448,8 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when coinbase has multiple outputs", () =>
       Effect.gen(function* () {
@@ -480,7 +490,8 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when coinbase amount is wrong", () =>
       Effect.gen(function* () {
@@ -517,6 +528,7 @@ describe("TransactionService", () => {
         const isValid = yield* TransactionService.isCoinbaseTxValid(coinbaseTx, blockHeight);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 });

@@ -1,7 +1,7 @@
 import { BadRequestError, InternalServerError } from "@blockchain/ledger-api/errors/apiErrors";
 import { TransactionRpcs } from "@blockchain/ledger-api/rpc/Transaction";
 import { Effect } from "effect";
-import { sendTransaction } from "../../application/Transaction/sendTransactions";
+import { sendTransaction } from "../../application/Transaction/sendTransaction";
 
 export const TransactionRpcHandlers = TransactionRpcs.toLayer({
   sendTransaction: ({ transaction }) =>

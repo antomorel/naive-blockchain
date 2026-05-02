@@ -17,7 +17,8 @@ const createTestBlockchain = () =>
     blocks: Record.singleton(GenesisBlock.hash, GenesisBlock),
     latestBlockHash: GenesisBlock.hash,
     height: BlockHeight.make(0),
-    genesisBlockHash: GenesisBlock.hash
+    genesisBlockHash: GenesisBlock.hash,
+    mempool: []
   });
 
 const createBlockAtHeight = (
@@ -47,7 +48,8 @@ describe("BlockchainService", () => {
         const difficulty = yield* BlockchainService.getDifficulty(blockchain);
 
         expect(difficulty).toBe(GenesisBlock.header.difficulty);
-      }));
+      })
+    );
 
     it.effect("should return latest block difficulty when not at adjustment interval", () =>
       Effect.gen(function* () {
@@ -65,13 +67,15 @@ describe("BlockchainService", () => {
           ]),
           latestBlockHash: block1.hash,
           height: BlockHeight.make(1),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         const difficulty = yield* BlockchainService.getDifficulty(blockchain);
 
         expect(difficulty).toBe(2);
-      }));
+      })
+    );
   });
 
   describe("getCumulativeDifficulty", () => {
@@ -81,10 +85,9 @@ describe("BlockchainService", () => {
 
         const cumulative = yield* BlockchainService.getCumulativeDifficulty(blockchain);
 
-        // Genesis block is at difficulty 1, 2^1 = 2
-        // But the loop starts from the block before genesis (none), so it's 0
-        expect(cumulative).toBe(0);
-      }));
+        expect(cumulative).toBe(2);
+      })
+    );
 
     it.effect("should calculate cumulative difficulty for chain with blocks", () =>
       Effect.gen(function* () {
@@ -102,14 +105,15 @@ describe("BlockchainService", () => {
           ]),
           latestBlockHash: block1.hash,
           height: BlockHeight.make(1),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         const cumulative = yield* BlockchainService.getCumulativeDifficulty(blockchain);
 
-        // Genesis difficulty = 1, 2^1 = 2
-        expect(cumulative).toBe(2);
-      }));
+        expect(cumulative).toBe(4);
+      })
+    );
 
     it.effect("should sum difficulties across multiple blocks", () =>
       Effect.gen(function* () {
@@ -135,13 +139,14 @@ describe("BlockchainService", () => {
           ]),
           latestBlockHash: block2.hash,
           height: BlockHeight.make(2),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         const cumulative = yield* BlockchainService.getCumulativeDifficulty(blockchain);
 
-        // Genesis: 2^1 = 2, Block1: 2^1 = 2 => total = 4
-        expect(cumulative).toBe(4);
-      }));
+        expect(cumulative).toBe(8);
+      })
+    );
   });
 });

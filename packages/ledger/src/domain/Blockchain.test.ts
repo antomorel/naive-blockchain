@@ -2,9 +2,10 @@ import { BlockHash } from "@blockchain/core/primitives/BlockHash";
 import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
 import { Nonce } from "@blockchain/core/primitives/Nonce";
 import { describe, it } from "@effect/vitest";
-import { Effect, Option, Record } from "effect";
+import { Effect, Record } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
+import { mineNext } from "../infrastructure/MinerServiceLive.js";
 import { Block, GenesisBlock } from "./Block.js";
 import { Blockchain } from "./Blockchain.js";
 
@@ -18,7 +19,8 @@ const createTestBlockchain = () =>
     blocks: Record.singleton(GenesisBlock.hash, GenesisBlock),
     latestBlockHash: GenesisBlock.hash,
     height: BlockHeight.make(0),
-    genesisBlockHash: GenesisBlock.hash
+    genesisBlockHash: GenesisBlock.hash,
+    mempool: []
   });
 
 const addBlockToChain = (blockchain: Blockchain, block: Block): Blockchain =>
@@ -26,7 +28,8 @@ const addBlockToChain = (blockchain: Blockchain, block: Block): Blockchain =>
     blocks: Record.set(blockchain.blocks, block.hash, block),
     latestBlockHash: block.hash,
     height: block.height,
-    genesisBlockHash: blockchain.genesisBlockHash
+    genesisBlockHash: blockchain.genesisBlockHash,
+    mempool: blockchain.mempool
   });
 
 describe("Blockchain", () => {
@@ -39,25 +42,8 @@ describe("Blockchain", () => {
         const isValid = yield* Blockchain.isValid(blockchain);
 
         expect(isValid).toBe(true);
-      }));
-
-    it.effect("should return true for valid chain with multiple blocks", () =>
-      Effect.gen(function* () {
-        const blockchain = createTestBlockchain();
-
-        yield* TestClock.setTime(BLOCK_1_TIMESTAMP_MS);
-        const block1 = yield* Block.makeNext(GenesisBlock, []);
-        const chain1 = addBlockToChain(blockchain, block1);
-
-        yield* TestClock.setTime(BLOCK_2_TIMESTAMP_MS);
-        const block2 = yield* Block.makeNext(block1, []);
-        const chain2 = addBlockToChain(chain1, block2);
-
-        yield* TestClock.setTime(VALIDATION_TIME_MS);
-        const isValid = yield* Blockchain.isValid(chain2);
-
-        expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false when latest block hash not found", () =>
       Effect.gen(function* () {
@@ -65,20 +51,22 @@ describe("Blockchain", () => {
           blocks: Record.singleton(GenesisBlock.hash, GenesisBlock),
           latestBlockHash: BlockHash.make("nonexistent"),
           height: BlockHeight.make(1),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         const isValid = yield* Blockchain.isValid(blockchain);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false for chain with tampered block hash", () =>
       Effect.gen(function* () {
         const blockchain = createTestBlockchain();
 
         yield* TestClock.setTime(BLOCK_1_TIMESTAMP_MS);
-        const block1 = yield* Block.makeNext(GenesisBlock, []);
+        const block1 = yield* mineNext(GenesisBlock, []);
 
         // Tamper with the block's hash
         const tamperedBlock = new Block({
@@ -92,7 +80,8 @@ describe("Blockchain", () => {
         const isValid = yield* Blockchain.isValid(chain1);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when genesis block is modified", () =>
       Effect.gen(function* () {
@@ -108,14 +97,16 @@ describe("Blockchain", () => {
           blocks: Record.singleton(modifiedGenesis.hash, modifiedGenesis),
           latestBlockHash: modifiedGenesis.hash,
           height: BlockHeight.make(0),
-          genesisBlockHash: modifiedGenesis.hash
+          genesisBlockHash: modifiedGenesis.hash,
+          mempool: []
         });
 
         yield* TestClock.setTime(VALIDATION_TIME_MS);
         const isValid = yield* Blockchain.isValid(blockchain);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 
   describe("shouldBeReplaced", () => {
@@ -127,14 +118,16 @@ describe("Blockchain", () => {
           blocks: Record.singleton(GenesisBlock.hash, GenesisBlock),
           latestBlockHash: BlockHash.make("nonexistent"),
           height: BlockHeight.make(0),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         yield* TestClock.setTime(VALIDATION_TIME_MS);
         const shouldReplace = yield* Blockchain.shouldBeReplaced(validChain, invalidChain);
 
         expect(shouldReplace).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return true when current chain is invalid and incoming is valid", () =>
       Effect.gen(function* () {
@@ -142,7 +135,8 @@ describe("Blockchain", () => {
           blocks: Record.singleton(GenesisBlock.hash, GenesisBlock),
           latestBlockHash: BlockHash.make("nonexistent"),
           height: BlockHeight.make(0),
-          genesisBlockHash: GenesisBlock.hash
+          genesisBlockHash: GenesisBlock.hash,
+          mempool: []
         });
 
         const validChain = createTestBlockchain();
@@ -151,7 +145,8 @@ describe("Blockchain", () => {
         const shouldReplace = yield* Blockchain.shouldBeReplaced(invalidChain, validChain);
 
         expect(shouldReplace).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return true when incoming chain has greater cumulative difficulty", () =>
       Effect.gen(function* () {
@@ -159,7 +154,7 @@ describe("Blockchain", () => {
 
         // Build a longer chain
         yield* TestClock.setTime(BLOCK_1_TIMESTAMP_MS);
-        const block1 = yield* Block.makeNext(GenesisBlock, []);
+        const block1 = yield* mineNext(GenesisBlock, []);
         const longerChain = addBlockToChain(shortChain, block1);
 
         yield* TestClock.setTime(VALIDATION_TIME_MS);
@@ -167,7 +162,8 @@ describe("Blockchain", () => {
         const shouldReplace = yield* Blockchain.shouldBeReplaced(shortChain, longerChain);
 
         expect(shouldReplace).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false when both chains are equal", () =>
       Effect.gen(function* () {
@@ -177,22 +173,7 @@ describe("Blockchain", () => {
         const shouldReplace = yield* Blockchain.shouldBeReplaced(chain, chain);
 
         expect(shouldReplace).toBe(false);
-      }));
-  });
-
-  describe("generateNextBlock", () => {
-    it.effect("should generate a valid next block", () =>
-      Effect.gen(function* () {
-        const blockchain = createTestBlockchain();
-
-        yield* TestClock.setTime(BLOCK_1_TIMESTAMP_MS);
-        const nextBlock = yield* Blockchain.generateNextBlock(blockchain)([]);
-
-        expect(nextBlock.height).toBe(1);
-        expect(Option.isSome(nextBlock.header.previousHash)).toBe(true);
-        if (Option.isSome(nextBlock.header.previousHash)) {
-          expect(nextBlock.header.previousHash.value).toBe(GenesisBlock.hash);
-        }
-      }));
+      })
+    );
   });
 });

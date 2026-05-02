@@ -20,7 +20,8 @@ describe("LedgerKeyPairService", () => {
         const address2 = yield* LedgerKeyPairService.deriveAddress(publicKey);
 
         expect(address1).toBe(address2);
-      }));
+      })
+    );
 
     it.effect("should return address starting with 0x", () =>
       Effect.gen(function* () {
@@ -30,7 +31,8 @@ describe("LedgerKeyPairService", () => {
         const address = yield* LedgerKeyPairService.deriveAddress(publicKey);
 
         expect(address.startsWith("0x")).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return 42-character address (0x + 40 hex chars)", () =>
       Effect.gen(function* () {
@@ -42,7 +44,8 @@ describe("LedgerKeyPairService", () => {
         // 0x prefix + 20 bytes = 42 characters
         expect(address).toHaveLength(42);
         expect(address).toMatch(/^0x[a-f0-9]{40}$/);
-      }));
+      })
+    );
 
     it.effect("should produce different addresses for different public keys", () =>
       Effect.gen(function* () {
@@ -56,7 +59,8 @@ describe("LedgerKeyPairService", () => {
         const address2 = yield* LedgerKeyPairService.deriveAddress(publicKey2);
 
         expect(address1).not.toBe(address2);
-      }));
+      })
+    );
 
     it.effect("should derive address from known public key bytes", () =>
       Effect.gen(function* () {
@@ -69,6 +73,7 @@ describe("LedgerKeyPairService", () => {
         // Address should be consistent
         expect(address.startsWith("0x")).toBe(true);
         expect(address).toHaveLength(42);
-      }));
+      })
+    );
   });
 });

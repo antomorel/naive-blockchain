@@ -29,7 +29,8 @@ describe("makeTransactionId", () => {
         const id2 = yield* makeTransactionId(inputs, outputs);
 
         expect(id1).toBe(id2);
-      }));
+      })
+    );
 
     it.effect("should produce different IDs for different inputs", () =>
       Effect.gen(function* () {
@@ -39,7 +40,8 @@ describe("makeTransactionId", () => {
         const id2 = yield* makeTransactionId([makeTestInput("tx456", 0)], outputs);
 
         expect(id1).not.toBe(id2);
-      }));
+      })
+    );
 
     it.effect("should produce different IDs for different outputs", () =>
       Effect.gen(function* () {
@@ -49,7 +51,8 @@ describe("makeTransactionId", () => {
         const id2 = yield* makeTransactionId(inputs, [makeTestOutput("0xdef", 100)]);
 
         expect(id1).not.toBe(id2);
-      }));
+      })
+    );
 
     it.effect("should produce different IDs for different amounts", () =>
       Effect.gen(function* () {
@@ -59,7 +62,8 @@ describe("makeTransactionId", () => {
         const id2 = yield* makeTransactionId(inputs, [makeTestOutput("0xabc", 200)]);
 
         expect(id1).not.toBe(id2);
-      }));
+      })
+    );
   });
 
   describe("format", () => {
@@ -71,7 +75,8 @@ describe("makeTransactionId", () => {
         const id = yield* makeTransactionId(inputs, outputs);
 
         expect(id).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should be a branded TransactionId type", () =>
       Effect.gen(function* () {
@@ -83,7 +88,8 @@ describe("makeTransactionId", () => {
         // TypeScript would fail if this wasn't a TransactionId
         const _typeCheck: TransactionId = id;
         expect(typeof _typeCheck).toBe("string");
-      }));
+      })
+    );
   });
 
   describe("edge cases", () => {
@@ -94,7 +100,8 @@ describe("makeTransactionId", () => {
         const id = yield* makeTransactionId([], outputs);
 
         expect(id).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should handle empty outputs array", () =>
       Effect.gen(function* () {
@@ -103,14 +110,16 @@ describe("makeTransactionId", () => {
         const id = yield* makeTransactionId(inputs, []);
 
         expect(id).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should handle both empty arrays", () =>
       Effect.gen(function* () {
         const id = yield* makeTransactionId([], []);
 
         expect(id).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should handle multiple inputs and outputs", () =>
       Effect.gen(function* () {
@@ -128,7 +137,8 @@ describe("makeTransactionId", () => {
         const id = yield* makeTransactionId(inputs, outputs);
 
         expect(id).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should differentiate based on input index", () =>
       Effect.gen(function* () {
@@ -138,6 +148,7 @@ describe("makeTransactionId", () => {
         const id2 = yield* makeTransactionId([makeTestInput("tx123", 1)], outputs);
 
         expect(id1).not.toBe(id2);
-      }));
+      })
+    );
   });
 });

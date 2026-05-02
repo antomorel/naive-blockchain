@@ -14,7 +14,8 @@ describe("HashService", () => {
         const hash2 = yield* HashService.sha256Hash(data);
 
         expect(hash1).toBe(hash2);
-      }));
+      })
+    );
 
     it.effect("should produce different hashes for different inputs", () =>
       Effect.gen(function* () {
@@ -25,7 +26,8 @@ describe("HashService", () => {
         const hash2 = yield* HashService.sha256Hash(data2);
 
         expect(hash1).not.toBe(hash2);
-      }));
+      })
+    );
 
     it.effect("should return a 64-character hex string (SHA-256)", () =>
       Effect.gen(function* () {
@@ -34,7 +36,8 @@ describe("HashService", () => {
         const hash = yield* HashService.sha256Hash(data);
 
         expect(hash).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should produce correct hash for empty input", () =>
       Effect.gen(function* () {
@@ -44,7 +47,8 @@ describe("HashService", () => {
 
         // SHA-256 of empty input is well-known
         expect(hash).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
-      }));
+      })
+    );
   });
 
   describe("sha256String", () => {
@@ -56,7 +60,8 @@ describe("HashService", () => {
         const hash2 = yield* HashService.sha256String(str);
 
         expect(hash1).toBe(hash2);
-      }));
+      })
+    );
 
     it.effect("should produce different hashes for different strings", () =>
       Effect.gen(function* () {
@@ -64,14 +69,16 @@ describe("HashService", () => {
         const hash2 = yield* HashService.sha256String("world");
 
         expect(hash1).not.toBe(hash2);
-      }));
+      })
+    );
 
     it.effect("should return a 64-character hex string", () =>
       Effect.gen(function* () {
         const hash = yield* HashService.sha256String("test");
 
         expect(hash).toMatch(/^[a-f0-9]{64}$/);
-      }));
+      })
+    );
 
     it.effect("should produce correct hash for known input", () =>
       Effect.gen(function* () {
@@ -79,7 +86,8 @@ describe("HashService", () => {
 
         // SHA-256 of "hello" is well-known
         expect(hash).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
-      }));
+      })
+    );
   });
 
   describe("hashMatchesDifficulty", () => {

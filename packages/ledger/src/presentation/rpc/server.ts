@@ -19,7 +19,10 @@ const RpcLive = RpcServer.layer(LedgerRpcs).pipe(Layer.provide(HandlersLive));
 export const RpcServerLive = RpcLive.pipe(
   Layer.provideMerge(RpcProtocol),
   Layer.provide(HttpRouter.serve(RpcProtocol, { disableListenLog: false })),
-  Layer.provide(BunHttpServer.layer({ port: PORT })),
-  Layer.tap(() => Effect.logInfo(`Listening at http://localhost:${PORT}`)),
+  Layer.provide(
+    BunHttpServer.layer({ port: PORT }).pipe(
+      Layer.tap(() => Effect.logInfo(`Listening at http://localhost:${PORT}`))
+    )
+  ),
   Layer.provide(RpcSerialization.layerNdjson)
 );

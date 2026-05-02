@@ -1,5 +1,5 @@
 import type { Transaction } from "@blockchain/core/Transaction/Transaction";
-import { Boolean, Data, Effect, Option, pipe, Record } from "effect";
+import { Boolean, Data, Effect, pipe } from "effect";
 import { BlockchainRepository } from "../../domain/BlockchainRepository";
 import * as TransactionService from "../../infrastructure/TransactionService";
 
@@ -12,14 +12,6 @@ export class InvalidTransactionOutputsError extends Data.TaggedError(
 )<{}> {}
 
 export const sendTransaction = Effect.fn("sendTransaction")(function* (transaction: Transaction) {
-  const blockchain = yield* BlockchainRepository.use(({ getBlockchain }) => getBlockchain());
-
-  const previousBlock = Record.get(blockchain.blocks, blockchain.latestBlockHash);
-
-  if (Option.isNone(previousBlock)) {
-    return yield* Effect.die("No previous block found");
-  }
-
   const areTxInputValid = yield* pipe(
     transaction.inputs,
     Effect.forEach((txIn) => TransactionService.isTxInputValid(txIn, transaction.id)),
@@ -36,5 +28,5 @@ export const sendTransaction = Effect.fn("sendTransaction")(function* (transacti
     return yield* new InvalidTransactionOutputsError();
   }
 
-  // Add transaction to the pool
+  yield* BlockchainRepository.use(({ addTransactionToPool }) => addTransactionToPool(transaction));
 });

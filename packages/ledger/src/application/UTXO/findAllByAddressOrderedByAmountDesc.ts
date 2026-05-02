@@ -7,7 +7,7 @@ export const findAllByAddressOrderedByAmountDesc = Effect.fn("findAllByAddressOr
     const utxos = yield* UTXOSet.use(({ findAllByAddressOrderedByAmountDesc }) =>
       findAllByAddressOrderedByAmountDesc(address)
     );
-    
+
     return utxos;
   }
 );

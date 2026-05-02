@@ -2,11 +2,11 @@ import * as HashService from "@blockchain/core/crypto/HashService";
 import { BlockHash } from "@blockchain/core/primitives/BlockHash";
 import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
 import type { Difficulty } from "@blockchain/core/primitives/Difficulty";
-import { Nonce } from "@blockchain/core/primitives/Nonce";
+import type { Nonce } from "@blockchain/core/primitives/Nonce";
 import type { Timestamp } from "@blockchain/core/primitives/Timestamp";
 import type { Transaction } from "@blockchain/core/Transaction/Transaction";
 import { DateTime, Duration, Effect, Option } from "effect";
-import { Block } from "../domain/Block.js";
+import type { Block } from "../domain/Block.js";
 
 export const computeHash = Effect.fn("computeBlockHash")(function* ({
   height,
@@ -35,49 +35,6 @@ export const computeHash = Effect.fn("computeBlockHash")(function* ({
   const hash = yield* HashService.sha256String(blockData);
 
   return BlockHash.make(hash);
-});
-
-export const mine = Effect.fn("mineBlock")(function* ({
-  height,
-  previousHash,
-  timestamp,
-  transactions,
-  difficulty
-}: {
-  height: BlockHeight;
-  previousHash: Option.Option<BlockHash>;
-  timestamp: Timestamp;
-  transactions: ReadonlyArray<Transaction>;
-  difficulty: Difficulty;
-}) {
-  let nonce = Nonce.make(0);
-
-  while (true) {
-    const hash = yield* computeHash({
-      height,
-      previousHash,
-      timestamp,
-      transactions,
-      difficulty,
-      nonce
-    });
-
-    if (HashService.hashMatchesDifficulty(hash, difficulty)) {
-      return new Block({
-        hash,
-        height,
-        header: {
-          previousHash,
-          timestamp,
-          difficulty,
-          nonce
-        },
-        transactions
-      });
-    }
-
-    nonce++;
-  }
 });
 
 const isValidTimestamp = (previousBlockTimestamp: Timestamp, nextBlockTimestamp: Timestamp) =>

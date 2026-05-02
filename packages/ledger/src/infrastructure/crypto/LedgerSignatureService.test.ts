@@ -24,7 +24,8 @@ describe("LedgerSignatureService", () => {
         const isValid = yield* LedgerSignatureService.verify(message, signature, publicKey);
 
         expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should return false for invalid signature", () =>
       Effect.gen(function* () {
@@ -38,7 +39,8 @@ describe("LedgerSignatureService", () => {
         const isValid = yield* LedgerSignatureService.verify(message, invalidSignature, publicKey);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false when message is tampered", () =>
       Effect.gen(function* () {
@@ -53,7 +55,8 @@ describe("LedgerSignatureService", () => {
         const isValid = yield* LedgerSignatureService.verify(tamperedMessage, signature, publicKey);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
 
     it.effect("should return false for wrong public key", () =>
       Effect.gen(function* () {
@@ -68,7 +71,8 @@ describe("LedgerSignatureService", () => {
         const isValid = yield* LedgerSignatureService.verify(message, signature, wrongPublicKey);
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 
   describe("verifySync", () => {
@@ -112,7 +116,8 @@ describe("LedgerSignatureService", () => {
         const isValid = yield* LedgerSignatureService.verifyString(message, signature, publicKey);
 
         expect(isValid).toBe(true);
-      }));
+      })
+    );
 
     it.effect("should fail for tampered string message", () =>
       Effect.gen(function* () {
@@ -132,6 +137,7 @@ describe("LedgerSignatureService", () => {
         );
 
         expect(isValid).toBe(false);
-      }));
+      })
+    );
   });
 });
