@@ -1,7 +1,7 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { Array, Effect, Equal, pipe } from "effect";
-import { Difficulty } from "../primitives/Difficulty.js";
+import { type Difficulty } from "../primitives/Difficulty.js";
 
 export const sha256Hash = (data: Uint8Array) => Effect.sync(() => bytesToHex(sha256(data)));
 
