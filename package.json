@@ -18,7 +18,7 @@
     "clean": "pnpm --recursive --parallel run clean"
   },
   "dependencies": {
-    "effect": "beta"
+    "effect": "4.0.0-beta.59"
   },
   "devDependencies": {
     "@effect/language-service": "^0.85.1",

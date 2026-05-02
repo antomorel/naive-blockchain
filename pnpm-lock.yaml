@@ -9,15 +9,15 @@ importers:
   .:
     dependencies:
       effect:
-        specifier: beta
-        version: 4.0.0-beta.57
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
     devDependencies:
       '@effect/language-service':
         specifier: ^0.85.1
         version: 0.85.1
       '@effect/vitest':
         specifier: beta
-        version: 4.0.0-beta.59(effect@4.0.0-beta.57)(vitest@4.1.5)
+        version: 4.0.0-beta.59(effect@4.0.0-beta.59)(vitest@4.1.5)
       '@eslint/js':
         specifier: ^9.39.2
         version: 9.39.4
@@ -58,7 +58,7 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: beta
+        specifier: 4.0.0-beta.59
         version: 4.0.0-beta.59
 
   packages/ledger:
@@ -73,7 +73,7 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: beta
+        specifier: 4.0.0-beta.59
         version: 4.0.0-beta.59
 
   packages/ledger-api:
@@ -82,7 +82,7 @@ importers:
         specifier: workspace:*
         version: link:../core
       effect:
-        specifier: beta
+        specifier: 4.0.0-beta.59
         version: 4.0.0-beta.59
 
   packages/wallet:
@@ -100,7 +100,7 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: beta
+        specifier: 4.0.0-beta.59
         version: 4.0.0-beta.59
 
 packages:
@@ -814,9 +814,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  effect@4.0.0-beta.57:
-    resolution: {integrity: sha512-rg32VgXnLKaPRs9tbRDaZ5jxmzNY7ojXt85gSHGUTwdlbWH5Ik+OCUY2q14TXliygPGoHwCAvNWS4bQJOqf00g==}
 
   effect@4.0.0-beta.59:
     resolution: {integrity: sha512-xyUDLeHSe8d6lWGOvR6Fgn2HL6gYeTZ/S4Jzk9uc4ZUxMPPsNZlNXrvk0C7/utQFzeX7uAWcVnG2BjbA0SRoAA==}
@@ -1572,9 +1569,9 @@ snapshots:
 
   '@effect/language-service@0.85.1': {}
 
-  '@effect/vitest@4.0.0-beta.59(effect@4.0.0-beta.57)(vitest@4.1.5)':
+  '@effect/vitest@4.0.0-beta.59(effect@4.0.0-beta.59)(vitest@4.1.5)':
     dependencies:
-      effect: 4.0.0-beta.57
+      effect: 4.0.0-beta.59
       vitest: 4.1.5(@types/node@22.19.17)(@vitest/coverage-v8@4.1.5)(jsdom@27.4.0(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@22.19.17)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.8.3))
 
   '@esbuild/aix-ppc64@0.27.7':
@@ -2095,19 +2092,6 @@ snapshots:
 
   detect-libc@2.1.2:
     optional: true
-
-  effect@4.0.0-beta.57:
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 4.7.0
-      find-my-way-ts: 0.1.6
-      ini: 6.0.0
-      kubernetes-types: 1.30.0
-      msgpackr: 1.11.10
-      multipasta: 0.2.7
-      toml: 4.1.1
-      uuid: 13.0.0
-      yaml: 2.8.3
 
   effect@4.0.0-beta.59:
     dependencies:

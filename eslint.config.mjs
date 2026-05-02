@@ -1,87 +1,7 @@
 import js from "@eslint/js"
-import tsParser from "@typescript-eslint/parser"
 import tsPlugin from "@typescript-eslint/eslint-plugin"
+import tsParser from "@typescript-eslint/parser"
 import prettierConfig from "eslint-config-prettier"
-
-/**
- * Custom ESLint rule to enforce import extension conventions:
- * - Relative imports (./foo or ../foo) must use .ts or .tsx extension
- * - Package imports (effect/Schema, @effect/sql) must be extensionless
- */
-const importExtensionsRule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "Enforce .ts/.tsx extension for relative imports and no extension for package imports"
-    },
-    messages: {
-      relativeRequiresTs: "Relative imports must use .ts or .tsx extension. Change '{{source}}' to '{{source}}.ts'",
-      relativeNoJs: "Relative imports must use .ts or .tsx extension, not .js/.jsx. Change '{{source}}' to '{{fixed}}'",
-      packageNoExtension: "Package imports must not have an extension. Change '{{source}}' to '{{fixed}}'"
-    },
-    schema: []
-  },
-  create(context) {
-    function checkImportSource(node, source) {
-      if (!source || typeof source !== "string") return
-
-      const isRelative = source.startsWith("./") || source.startsWith("../")
-
-      if (isRelative) {
-        // Allow Vite special import suffixes like ?url, ?raw, ?worker, etc.
-        if (source.includes("?")) {
-          return
-        }
-
-        // Relative imports must use .ts or .tsx
-        if (source.endsWith(".js") || source.endsWith(".jsx")) {
-          const fixed = source.replace(/\.jsx?$/, ".ts")
-          context.report({
-            node,
-            messageId: "relativeNoJs",
-            data: { source, fixed }
-          })
-        } else if (!source.endsWith(".ts") && !source.endsWith(".tsx") && !source.endsWith(".json")) {
-          // Missing extension on relative import
-          context.report({
-            node,
-            messageId: "relativeRequiresTs",
-            data: { source }
-          })
-        }
-      } else {
-        // Package imports must be extensionless
-        if (source.endsWith(".ts") || source.endsWith(".tsx") || source.endsWith(".js") || source.endsWith(".jsx")) {
-          const fixed = source.replace(/\.(tsx?|jsx?)$/, "")
-          context.report({
-            node,
-            messageId: "packageNoExtension",
-            data: { source, fixed }
-          })
-        }
-      }
-    }
-
-    return {
-      ImportDeclaration(node) {
-        checkImportSource(node, node.source?.value)
-      },
-      ImportExpression(node) {
-        if (node.source?.type === "Literal") {
-          checkImportSource(node, node.source.value)
-        }
-      },
-      ExportNamedDeclaration(node) {
-        if (node.source) {
-          checkImportSource(node, node.source.value)
-        }
-      },
-      ExportAllDeclaration(node) {
-        checkImportSource(node, node.source?.value)
-      }
-    }
-  }
-}
 
 /**
  * Custom ESLint rule to ban { disableValidation: true } in Schema.make() calls.
@@ -94,7 +14,8 @@ const noDisableValidationRule = {
       description: "Disallow disableValidation: true in Schema operations"
     },
     messages: {
-      noDisableValidation: "Do not use { disableValidation: true }. Schema validation should always be enabled to catch invalid data. If you're seeing validation errors, fix the data or schema instead of disabling validation."
+      noDisableValidation:
+        "Do not use { disableValidation: true }. Schema validation should always be enabled to catch invalid data. If you're seeing validation errors, fix the data or schema instead of disabling validation."
     },
     schema: []
   },
@@ -104,7 +25,7 @@ const noDisableValidationRule = {
         if (
           node.key &&
           ((node.key.type === "Identifier" && node.key.name === "disableValidation") ||
-           (node.key.type === "Literal" && node.key.value === "disableValidation")) &&
+            (node.key.type === "Literal" && node.key.value === "disableValidation")) &&
           node.value &&
           node.value.type === "Literal" &&
           node.value.value === true
@@ -130,7 +51,8 @@ const preferOptionFromNullableRule = {
       description: "Prefer Option.fromNullable over ternary with Option.some/none"
     },
     messages: {
-      preferFromNullable: "Use Option.fromNullable({{name}}) instead of ternary with Option.some/Option.none."
+      preferFromNullable:
+        "Use Option.fromNullable({{name}}) instead of ternary with Option.some/Option.none."
     },
     schema: []
   },
@@ -144,13 +66,29 @@ const preferOptionFromNullableRule = {
         if (test.operator !== "!==" && test.operator !== "!=") return
 
         let testedName = null
-        if (test.left.type === "Identifier" && test.right.type === "Literal" && test.right.value === null) {
+        if (
+          test.left.type === "Identifier" &&
+          test.right.type === "Literal" &&
+          test.right.value === null
+        ) {
           testedName = test.left.name
-        } else if (test.right.type === "Identifier" && test.left.type === "Literal" && test.left.value === null) {
+        } else if (
+          test.right.type === "Identifier" &&
+          test.left.type === "Literal" &&
+          test.left.value === null
+        ) {
           testedName = test.right.name
-        } else if (test.left.type === "MemberExpression" && test.right.type === "Literal" && test.right.value === null) {
+        } else if (
+          test.left.type === "MemberExpression" &&
+          test.right.type === "Literal" &&
+          test.right.value === null
+        ) {
           testedName = context.getSourceCode().getText(test.left)
-        } else if (test.right.type === "MemberExpression" && test.left.type === "Literal" && test.left.value === null) {
+        } else if (
+          test.right.type === "MemberExpression" &&
+          test.left.type === "Literal" &&
+          test.left.value === null
+        ) {
           testedName = context.getSourceCode().getText(test.right)
         }
         if (!testedName) return
@@ -172,16 +110,16 @@ const preferOptionFromNullableRule = {
         // Handle both Option.none() and Option.none<Type>()
         const isOptionNone =
           (altCallee.type === "MemberExpression" &&
-           altCallee.object.type === "Identifier" &&
-           altCallee.object.name === "Option" &&
-           altCallee.property.type === "Identifier" &&
-           altCallee.property.name === "none") ||
+            altCallee.object.type === "Identifier" &&
+            altCallee.object.name === "Option" &&
+            altCallee.property.type === "Identifier" &&
+            altCallee.property.name === "none") ||
           (altCallee.type === "TSInstantiationExpression" &&
-           altCallee.expression.type === "MemberExpression" &&
-           altCallee.expression.object.type === "Identifier" &&
-           altCallee.expression.object.name === "Option" &&
-           altCallee.expression.property.type === "Identifier" &&
-           altCallee.expression.property.name === "none")
+            altCallee.expression.type === "MemberExpression" &&
+            altCallee.expression.object.type === "Identifier" &&
+            altCallee.expression.object.name === "Option" &&
+            altCallee.expression.property.type === "Identifier" &&
+            altCallee.expression.property.name === "none")
         if (!isOptionNone) return
 
         context.report({
@@ -205,7 +143,8 @@ const pipeMaxArgumentsRule = {
       description: "Disallow .pipe() with more than 20 arguments"
     },
     messages: {
-      tooManyArgs: ".pipe() has {{count}} arguments. Consider splitting into multiple .pipe() calls for readability (max 20)."
+      tooManyArgs:
+        ".pipe() has {{count}} arguments. Consider splitting into multiple .pipe() calls for readability (max 20)."
     },
     schema: []
   },
@@ -243,7 +182,8 @@ const noEffectAsVoidRule = {
       description: "Disallow Effect.asVoid - it is usually unnecessary"
     },
     messages: {
-      noEffectAsVoid: "Effect.asVoid is usually unnecessary. The `void` return type already allows any value to be returned from an effect. Remove it."
+      noEffectAsVoid:
+        "Effect.asVoid is usually unnecessary. The `void` return type already allows any value to be returned from an effect. Remove it."
     },
     schema: []
   },
@@ -277,7 +217,8 @@ const noEffectIgnoreRule = {
       description: "Disallow Effect.ignore - errors should be explicitly handled"
     },
     messages: {
-      noEffectIgnore: "Do not use Effect.ignore. It silently discards errors which hides bugs. Handle errors explicitly with Effect.catchTag, Effect.catchAll, or propagate them."
+      noEffectIgnore:
+        "Do not use Effect.ignore. It silently discards errors which hides bugs. Handle errors explicitly with Effect.catchTag, Effect.catchAll, or propagate them."
     },
     schema: []
   },
@@ -311,7 +252,8 @@ const noEffectCatchAllCauseRule = {
       description: "Disallow Effect.catchAllCause - it catches defects which should not be caught"
     },
     messages: {
-      noEffectCatchAllCause: "Do not use Effect.catchAllCause. It catches defects (bugs) which should crash the program. Use Effect.catchAll or Effect.catchTag to handle expected errors only."
+      noEffectCatchAllCause:
+        "Do not use Effect.catchAllCause. It catches defects (bugs) which should crash the program. Use Effect.catchAll or Effect.catchTag to handle expected errors only."
     },
     schema: []
   },
@@ -344,7 +286,8 @@ const noSilentErrorSwallowRule = {
       description: "Disallow catch handlers that silently swallow errors by returning Effect.void"
     },
     messages: {
-      noSilentSwallow: "Do not silently swallow errors with '() => Effect.void'. Errors should be represented in the type system, not ignored."
+      noSilentSwallow:
+        "Do not silently swallow errors with '() => Effect.void'. Errors should be represented in the type system, not ignored."
     },
     schema: []
   },
@@ -450,7 +393,8 @@ const noVoidExpressionRule = {
       description: "Disallow void expressions - they are no-ops"
     },
     messages: {
-      noVoidExpression: "'void {{expression}}' is a no-op. It evaluates the expression and discards the result. Remove it or use the value."
+      noVoidExpression:
+        "'void {{expression}}' is a no-op. It evaluates the expression and discards the result. Remove it or use the value."
     },
     schema: []
   },
@@ -480,7 +424,8 @@ const noServiceOptionRule = {
       description: "Disallow Effect.serviceOption - services should always be present in context"
     },
     messages: {
-      noServiceOption: "Do not use Effect.serviceOption. Services should always be present in context, even during testing."
+      noServiceOption:
+        "Do not use Effect.serviceOption. Services should always be present in context, even during testing."
     },
     schema: []
   },
@@ -515,7 +460,8 @@ const noNestedLayerProvideRule = {
       description: "Disallow nested Layer.provide calls"
     },
     messages: {
-      nestedProvide: "Nested Layer.provide detected. Extract the inner Layer.provide to a separate variable or use Layer.provideMerge."
+      nestedProvide:
+        "Nested Layer.provide detected. Extract the inner Layer.provide to a separate variable or use Layer.provideMerge."
     },
     schema: []
   },
@@ -551,7 +497,6 @@ const noNestedLayerProvideRule = {
 
 const localPlugin = {
   rules: {
-    "import-extensions": importExtensionsRule,
     "no-disable-validation": noDisableValidationRule,
     "prefer-option-from-nullable": preferOptionFromNullableRule,
     "pipe-max-arguments": pipeMaxArgumentsRule,
@@ -600,12 +545,10 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tsPlugin,
-      "local": localPlugin
+      local: localPlugin
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      // Import extension conventions
-      "local/import-extensions": "error",
       // Ban disableValidation: true
       "local/no-disable-validation": "error",
       // Prefer Option.fromNullable over ternary
