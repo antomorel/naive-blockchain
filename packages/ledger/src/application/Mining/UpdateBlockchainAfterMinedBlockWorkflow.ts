@@ -4,6 +4,7 @@ import { UTXO } from "@blockchain/core/UTXO/UTXO";
 import { Array, Effect, Schema } from "effect";
 import { Activity, Workflow } from "effect/unstable/workflow";
 import { Block } from "../../domain/Block.js";
+import { Blockchain } from "../../domain/Blockchain.js";
 import {
   BlockchainPersistenceError,
   BlockchainRepository
@@ -54,7 +55,7 @@ export const MineBlockWorkflowLayer = UpdateBlockchainAfterMinedBlockWorkflow.to
 
     yield* Activity.make({
       name: "AddBlock",
-      success: Schema.Void,
+      success: Blockchain,
       error: BlockchainPersistenceError,
       execute: addBlock(minedBlock)
     }).pipe(
@@ -84,7 +85,7 @@ export const MineBlockWorkflowLayer = UpdateBlockchainAfterMinedBlockWorkflow.to
 
     yield* Activity.make({
       name: "ClearMempool",
-      success: Schema.Void,
+      success: Blockchain,
       error: BlockchainPersistenceError,
       execute: clearMinedTransactions(Array.map(mempool, (tx) => tx.id))
     }).pipe(

@@ -38,7 +38,7 @@ const signUtxo = Effect.fn("signUtxo")(function* (
   return yield* WalletSignatureService.signString(transactionId, privateKey);
 });
 
-export const sendTransaction = Effect.fn("send")(function* (
+export const buildTransaction = Effect.fn("buildTransaction")(function* (
   transactionOutput: TransactionOutput,
   privateKey: PrivateKey
 ) {

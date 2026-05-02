@@ -10,13 +10,18 @@
       "default": "./dist/index.js"
     }
   },
+  "bin": {
+    "wallet": "./dist/presentation/cli/main.js"
+  },
   "scripts": {
     "clean": "rm -rf dist",
-    "test": "cd ../.. && vitest run packages/wallet/test"
+    "test": "cd ../.. && vitest run packages/wallet/test",
+    "cli": "bun run src/presentation/cli/main.ts"
   },
   "dependencies": {
     "@blockchain/core": "workspace:*",
     "@blockchain/ledger-api": "workspace:*",
+    "@effect/platform-bun": "4.0.0-beta.59",
     "@noble/ed25519": "^3.1.0",
     "@noble/hashes": "^2.2.0",
     "effect": "4.0.0-beta.59"

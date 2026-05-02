@@ -5,7 +5,7 @@ import { RpcClient, RpcSerialization } from "effect/unstable/rpc";
 import { LedgerRpcClient } from "../domain/Ledger/LedgerRpcClient";
 
 const ProtocolLive = RpcClient.layerProtocolHttp({
-  url: "/rpc"
+  url: "http://localhost:3000/rpc"
 }).pipe(Layer.provide([FetchHttpClient.layer, RpcSerialization.layerNdjson]));
 
 export const LedgerRpcClientLive = RpcClient.make(LedgerRpcs).pipe(
