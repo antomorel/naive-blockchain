@@ -9,5 +9,8 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"],
-  "references": [{ "path": "../core/tsconfig.src.json" }]
+  "references": [
+    { "path": "../core/tsconfig.src.json" },
+    { "path": "../ledger-api/tsconfig.src.json" }
+  ]
 }

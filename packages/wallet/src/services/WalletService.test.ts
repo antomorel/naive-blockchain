@@ -4,12 +4,12 @@ import { TransactionId } from "@blockchain/core/primitives/TransactionId";
 import { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex";
 import { TransactionOutput } from "@blockchain/core/Transaction/Transaction";
 import type { UTXO } from "@blockchain/core/UTXO/UTXO";
-import { LedgerRpcClient } from "@blockchain/ledger-api/rpc/client";
 import { describe, it } from "@effect/vitest";
 import * as ed from "@noble/ed25519";
 import { sha512 } from "@noble/hashes/sha2.js";
 import { Cause, Effect, Exit, Predicate } from "effect";
 import { expect } from "vitest";
+import { createMockLedgerRpcClient } from "../test/mocks.js";
 import * as WalletKeyPairService from "./crypto/WalletKeyPairService.js";
 import * as WalletService from "./WalletService.js";
 
@@ -32,12 +32,6 @@ const makeUTXO = (txId: string, index: number, amount: number, address: string):
   address: Address.make(address)
 });
 
-// Create mock LedgerRpcClient
-const createMockClient = (utxos: ReadonlyArray<UTXO>) =>
-  LedgerRpcClient.of({
-    findAllByAddressOrderedByAmountDesc: () => Effect.succeed(utxos) as any // eslint-disable-line
-  });
-
 describe("WalletService", () => {
   describe("sendTransaction", () => {
     it.effect("should create valid transaction with exact amount", () =>
@@ -46,8 +40,6 @@ describe("WalletService", () => {
 
         const utxos = [makeUTXO("prev-tx", 0, 100, keyPair.address)];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -55,7 +47,7 @@ describe("WalletService", () => {
         });
 
         const transaction = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         expect(transaction.id).toMatch(/^[a-f0-9]{64}$/);
@@ -72,8 +64,6 @@ describe("WalletService", () => {
 
         const utxos = [makeUTXO("prev-tx", 0, 100, keyPair.address)];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -81,7 +71,7 @@ describe("WalletService", () => {
         });
 
         const transaction = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         expect(transaction.outputs).toHaveLength(2); // Recipient + change
@@ -106,8 +96,6 @@ describe("WalletService", () => {
           makeUTXO("tx2", 0, 50, keyPair.address)
         ];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -115,7 +103,7 @@ describe("WalletService", () => {
         });
 
         const transaction = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         // Verify each input has a valid signature
@@ -140,8 +128,6 @@ describe("WalletService", () => {
 
         const utxos = [makeUTXO("prev-tx", 0, 100, keyPair.address)];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -149,7 +135,7 @@ describe("WalletService", () => {
         });
 
         const transaction = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         for (const input of transaction.inputs) {
@@ -169,8 +155,6 @@ describe("WalletService", () => {
           makeUTXO("tx2", 1, 40, keyPair.address)
         ];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -178,7 +162,7 @@ describe("WalletService", () => {
         });
 
         const transaction = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         // Inputs should reference the UTXOs that were selected
@@ -196,8 +180,6 @@ describe("WalletService", () => {
         // UTXOs belong to different address
         const utxos = [makeUTXO("prev-tx", 0, 100, otherKeyPair.address)];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -205,7 +187,7 @@ describe("WalletService", () => {
         });
 
         const result = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient),
+          Effect.provide(createMockLedgerRpcClient(utxos)),
           Effect.exit
         );
 
@@ -223,8 +205,6 @@ describe("WalletService", () => {
 
         const utxos = [makeUTXO("prev-tx", 0, 100, keyPair.address)];
 
-        const mockClient = createMockClient(utxos);
-
         const recipientAddress = Address.make("0xrecipient12345678901234567890123456789012");
         const output = TransactionOutput.make({
           address: recipientAddress,
@@ -232,10 +212,10 @@ describe("WalletService", () => {
         });
 
         const tx1 = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
         const tx2 = yield* WalletService.sendTransaction(output, keyPair.privateKey).pipe(
-          Effect.provideService(LedgerRpcClient, mockClient)
+          Effect.provide(createMockLedgerRpcClient(utxos))
         );
 
         expect(tx1.id).toBe(tx2.id);

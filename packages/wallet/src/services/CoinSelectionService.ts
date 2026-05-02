@@ -1,8 +1,8 @@
-import { LedgerRpcClient } from "@blockchain/ledger-api/rpc/client";
-import { Address } from "@blockchain/core/primitives/Address";
+import type { Address } from "@blockchain/core/primitives/Address";
 import { Amount } from "@blockchain/core/primitives/Amount";
 import type { UTXO } from "@blockchain/core/UTXO/UTXO";
 import { Data, Effect, Option } from "effect";
+import { LedgerRpcClient } from "../domain/Ledger/LedgerRpcClient.js";
 
 class InsufficientFundsError extends Data.TaggedError("InsufficientFundsError")<{
   address: Address;

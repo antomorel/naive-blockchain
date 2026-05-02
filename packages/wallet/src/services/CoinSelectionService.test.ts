@@ -3,10 +3,10 @@ import { Amount } from "@blockchain/core/primitives/Amount";
 import { TransactionId } from "@blockchain/core/primitives/TransactionId";
 import { TxOutputIndex } from "@blockchain/core/primitives/TxOutputIndex";
 import type { UTXO } from "@blockchain/core/UTXO/UTXO";
-import { LedgerRpcClient } from "@blockchain/ledger-api/rpc/client";
 import { describe, it } from "@effect/vitest";
-import { Array, Cause, Effect, Exit, Layer, Predicate } from "effect";
+import { Array, Cause, Effect, Exit, Predicate } from "effect";
 import { expect } from "vitest";
+import { createMockLedgerRpcClient } from "../test/mocks.js";
 import * as CoinSelectionService from "./CoinSelectionService.js";
 
 const getFailureTag = (cause: Cause.Cause<unknown>) => {
@@ -25,15 +25,6 @@ const makeUTXO = (txId: string, index: number, amount: number, address: string):
   address: Address.make(address)
 });
 
-// Create mock LedgerRpcClient
-const createMockClient = (utxos: ReadonlyArray<UTXO>) =>
-  Layer.succeed(
-    LedgerRpcClient,
-    LedgerRpcClient.of({
-      findAllByAddressOrderedByAmountDesc: () => Effect.succeed(utxos) as any // eslint-disable-line
-    })
-  );
-
 describe("CoinSelectionService", () => {
   describe("findForAmountAndAddress", () => {
     const testAddress = Address.make("0xtest1234567890abcdef1234567890abcdef12");
@@ -46,12 +37,10 @@ describe("CoinSelectionService", () => {
           makeUTXO("tx3", 0, 20, testAddress)
         ];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(50),
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         expect(result.leftOver).toBe(0);
         // Should find exact match
@@ -68,12 +57,10 @@ describe("CoinSelectionService", () => {
           makeUTXO("tx3", 0, 10, testAddress)
         ];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(50), // 30 + 20 = 50
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         expect(result.leftOver).toBe(0);
         const totalSelected = Array.reduce(result.selection, 0, (acc, u) => acc + u.amount);
@@ -85,12 +72,10 @@ describe("CoinSelectionService", () => {
       Effect.gen(function* () {
         const utxos = [makeUTXO("tx1", 0, 100, testAddress), makeUTXO("tx2", 0, 50, testAddress)];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(75), // No exact match possible
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         // Should accumulate until we have enough
         const totalSelected = Array.reduce(result.selection, 0, (acc, u) => acc + u.amount);
@@ -103,12 +88,10 @@ describe("CoinSelectionService", () => {
       Effect.gen(function* () {
         const utxos = [makeUTXO("tx1", 0, 30, testAddress), makeUTXO("tx2", 0, 20, testAddress)];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(100), // More than available (50 total)
           testAddress
-        ).pipe(Effect.provide(mockClient), Effect.exit);
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)), Effect.exit);
 
         expect(Exit.isFailure(result)).toBe(true);
         if (Exit.isFailure(result)) {
@@ -122,12 +105,10 @@ describe("CoinSelectionService", () => {
       Effect.gen(function* () {
         const utxos = [makeUTXO("tx1", 0, 100, testAddress)];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(0),
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         expect(result.selection).toHaveLength(0);
         expect(result.leftOver).toBe(0);
@@ -138,12 +119,10 @@ describe("CoinSelectionService", () => {
       Effect.gen(function* () {
         const utxos = [makeUTXO("tx1", 0, 100, testAddress)];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(100),
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         expect(result.selection).toHaveLength(1);
         expect(result.selection[0].amount).toBe(100);
@@ -153,12 +132,10 @@ describe("CoinSelectionService", () => {
 
     it.effect("should handle empty UTXO list", () =>
       Effect.gen(function* () {
-        const mockClient = createMockClient([]);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(50),
           testAddress
-        ).pipe(Effect.provide(mockClient), Effect.exit);
+        ).pipe(Effect.provide(createMockLedgerRpcClient([])), Effect.exit);
 
         expect(Exit.isFailure(result)).toBe(true);
         if (Exit.isFailure(result)) {
@@ -172,12 +149,10 @@ describe("CoinSelectionService", () => {
       Effect.gen(function* () {
         const utxos = [makeUTXO("tx1", 0, 100, testAddress), makeUTXO("tx2", 0, 50, testAddress)];
 
-        const mockClient = createMockClient(utxos);
-
         const result = yield* CoinSelectionService.findForAmountAndAddress(
           Amount.make(120),
           testAddress
-        ).pipe(Effect.provide(mockClient));
+        ).pipe(Effect.provide(createMockLedgerRpcClient(utxos)));
 
         const totalSelected = Array.reduce(result.selection, 0, (acc, u) => acc + u.amount);
         expect(result.leftOver).toBe(totalSelected - 120);

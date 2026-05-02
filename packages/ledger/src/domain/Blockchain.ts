@@ -1,6 +1,6 @@
 import { BlockHash } from "@blockchain/core/primitives/BlockHash";
 import { BlockHeight } from "@blockchain/core/primitives/BlockHeight";
-import { Transaction } from "@blockchain/core/Transaction/Transaction";
+import type { Transaction } from "@blockchain/core/Transaction/Transaction";
 import { Effect, Option, Record, Schema } from "effect";
 import * as BlockchainService from "../infrastructure/BlockchainService.js";
 import * as BlockService from "../infrastructure/BlockService.js";
