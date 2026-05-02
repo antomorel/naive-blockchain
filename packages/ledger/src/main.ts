@@ -1,23 +1,27 @@
 import { BunRuntime } from "@effect/platform-bun";
-import { Effect, Layer, Logger } from "effect";
+import { Array, Cause, Effect, Layer, Logger } from "effect";
 import { WorkflowEngine } from "effect/unstable/workflow";
 import { MineBlockWorkflowLayer } from "./application/Mining/UpdateBlockchainAfterMinedBlockWorkflow";
 import { runMiner } from "./application/Mining/runMiner";
 import { LedgerConfig, LedgerConfigLive } from "./config";
 import { TestMinerService } from "./infrastructure/TestMinerService";
 import { BlockchainRepositoryLive, UTXOSetLive } from "./live";
+import { HttpServerLive } from "./presentation/http/server";
 import { RpcServerLive } from "./presentation/rpc/server";
 
 const LoggerLive = Logger.layer([
-  Logger.make(({ logLevel, message }) => {
-    globalThis.console.log(`[${logLevel}] ${message}`);
+  Logger.make(({ logLevel, cause, message }) => {
+    globalThis.console.log(
+      `[${logLevel}] ${Array.isArray(message) && Array.isArrayEmpty(message) ? Cause.squash(cause) : message}`
+    );
   })
 ]);
 
 Effect.all(
   [
     runMiner().pipe(Effect.when(LedgerConfig.useSync((config) => config.shouldMine))),
-    Layer.launch(RpcServerLive)
+    Layer.launch(RpcServerLive),
+    Layer.launch(HttpServerLive)
   ],
   { concurrency: "unbounded" }
 ).pipe(
