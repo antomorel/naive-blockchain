@@ -7,7 +7,7 @@ export class LedgerConfig extends Context.Service<
     readonly shouldMine: boolean;
     readonly minerAddress: Option.Option<Address>;
   }
->()("LedgerConfig") {}
+>()("@config/ledger") {}
 
 export const ledgerConfig = Effect.gen(function* () {
   const config = yield* pipe(
@@ -25,3 +25,31 @@ export const ledgerConfig = Effect.gen(function* () {
 });
 
 export const LedgerConfigLive = Layer.effect(LedgerConfig)(ledgerConfig);
+
+export class MatrixConfig extends Context.Service<
+  MatrixConfig,
+  {
+    readonly homeserverUrl: string;
+    readonly userId: string;
+    readonly password: string;
+    readonly roomAlias: string;
+    readonly nodeId: string;
+  }
+>()("@config/matrix") {}
+
+export const matrixConfig = Effect.gen(function* () {
+  const config = yield* pipe(
+    Config.all({
+      homeserverUrl: Config.string("HOMESERVER_URL"),
+      userId: Config.string("USER_ID"),
+      password: Config.string("PASSWORD"),
+      roomAlias: Config.string("ROOM_ALIAS"),
+      nodeId: Config.string("NODE_ID")
+    }),
+    Config.nested("MATRIX")
+  );
+
+  return config;
+});
+
+export const MatrixConfigLive = Layer.effect(MatrixConfig)(matrixConfig);

@@ -3,11 +3,12 @@ import { Array, Cause, Effect, Layer, Logger } from "effect";
 import { WorkflowEngine } from "effect/unstable/workflow";
 import { MineBlockWorkflowLayer } from "./application/Mining/UpdateBlockchainAfterMinedBlockWorkflow";
 import { runMiner } from "./application/Mining/runMiner";
-import { LedgerConfig, LedgerConfigLive } from "./config";
+import { LedgerConfig, LedgerConfigLive, MatrixConfigLive } from "./config";
 import { TestMinerService } from "./infrastructure/TestMinerService";
 import { BlockchainRepositoryLive, UTXOSetLive } from "./live";
 import { HttpServerLive } from "./presentation/http/server";
 import { RpcServerLive } from "./presentation/rpc/server";
+import { MatrixNetworkService } from "./infrastructure/network/MatrixNetworkService";
 
 const LoggerLive = Logger.layer([
   Logger.make(({ logLevel, cause, message }) => {
@@ -31,6 +32,8 @@ Effect.all(
   Effect.provide(UTXOSetLive),
   Effect.provide(BlockchainRepositoryLive),
   Effect.provide(LedgerConfigLive),
+  Effect.provide(MatrixNetworkService.Live()),
+  Effect.provide(MatrixConfigLive),
   Effect.provide(TestMinerService),
   BunRuntime.runMain
 );
