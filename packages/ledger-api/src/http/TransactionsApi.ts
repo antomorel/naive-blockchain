@@ -3,7 +3,7 @@ import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi"
 import { InternalServerError } from "../errors/apiErrors";
 
 class TransactionsApiGroup extends HttpApiGroup.make("transactions").add(
-  HttpApiEndpoint.make("GET")("getTransactions", "/", {
+  HttpApiEndpoint.make("GET")("getAll", "/", {
     payload: {
       skip: Schema.Number,
       take: Schema.Number
@@ -14,7 +14,7 @@ class TransactionsApiGroup extends HttpApiGroup.make("transactions").add(
         from: Schema.String,
         to: Schema.String,
         amount: Schema.Number,
-        time: Schema.Duration
+        time: Schema.DateTimeUtc
       })
     ),
     error: InternalServerError

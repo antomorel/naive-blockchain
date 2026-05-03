@@ -6,10 +6,7 @@ import { cn } from "@/lib/utils";
 
 const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => (
   <div
-    className={cn(
-      "rounded-lg border border-destructive/50 bg-destructive/10",
-      "p-6 text-center"
-    )}
+    className={cn("rounded-lg border border-destructive/50 bg-destructive/10", "p-6 text-center")}
   >
     <p className="text-destructive font-medium mb-2">Failed to load data</p>
     <p className="text-sm text-muted-foreground mb-4">

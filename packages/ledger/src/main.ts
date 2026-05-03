@@ -12,7 +12,7 @@ import { RpcServerLive } from "./presentation/rpc/server";
 const LoggerLive = Logger.layer([
   Logger.make(({ logLevel, cause, message }) => {
     globalThis.console.log(
-      `[${logLevel}] ${Array.isArray(message) && Array.isArrayEmpty(message) ? Cause.squash(cause) : message}`
+      `[${logLevel}] ${Array.isArray(message) && Array.isArrayEmpty(message) ? JSON.stringify(Cause.squash(cause), null, 2) : message}`
     );
   })
 ]);

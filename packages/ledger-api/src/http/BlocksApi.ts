@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 class BlocksApiGroup extends HttpApiGroup.make("blocks").add(
-  HttpApiEndpoint.make("GET")("getBlocks", "/", {
+  HttpApiEndpoint.make("GET")("getAll", "/", {
     payload: {
       skip: Schema.Number,
       take: Schema.Number
@@ -13,7 +13,7 @@ class BlocksApiGroup extends HttpApiGroup.make("blocks").add(
         miner: Schema.String,
         transactions: Schema.Number,
         size: Schema.Number,
-        time: Schema.Duration
+        time: Schema.DateTimeUtc
       })
     )
   })

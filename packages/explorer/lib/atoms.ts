@@ -19,7 +19,7 @@ export const blocksAtom = Atom.family((payload: { skip: number; take: number }) 
   ledgerRuntime.atom(
     Stream.fromEffectRepeat(
       LedgerApiClient.use((client) =>
-        client.blocks.getBlocks({ payload }).pipe(Effect.retry(retryPolicy))
+        client.blocks.getAll({ payload }).pipe(Effect.retry(retryPolicy))
       )
     ).pipe(Stream.schedule(pollingSchedule))
   )
@@ -29,7 +29,7 @@ export const transactionsAtom = Atom.family((payload: { skip: number; take: numb
   ledgerRuntime.atom(
     Stream.fromEffectRepeat(
       LedgerApiClient.use((client) =>
-        client.transactions.getTransactions({ payload }).pipe(Effect.retry(retryPolicy))
+        client.transactions.getAll({ payload }).pipe(Effect.retry(retryPolicy))
       )
     ).pipe(Stream.schedule(pollingSchedule))
   )

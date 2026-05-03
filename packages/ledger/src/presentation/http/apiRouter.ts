@@ -7,7 +7,7 @@ import { getBlocks } from "../../application/Blocks/getBlocks";
 import { getTransactions } from "../../application/Transaction/getTransactions";
 
 const BlockApiRouter = HttpApiBuilder.group(PublicApi, "blocks", (handlers) =>
-  handlers.handle("getBlocks", ({ payload }) => getBlocks(payload))
+  handlers.handle("getAll", ({ payload }) => getBlocks(payload))
 );
 
 const BlockchainApiRouter = HttpApiBuilder.group(PublicApi, "blockchain", (handlers) =>
@@ -15,7 +15,7 @@ const BlockchainApiRouter = HttpApiBuilder.group(PublicApi, "blockchain", (handl
 );
 
 const TransactionApiRouter = HttpApiBuilder.group(PublicApi, "transactions", (handlers) =>
-  handlers.handle("getTransactions", ({ payload }) =>
+  handlers.handle("getAll", ({ payload }) =>
     getTransactions(payload).pipe(
       Effect.catchTag("SchemaError", () =>
         Effect.fail(new InternalServerError({ message: "An unexpected error occurred" }))

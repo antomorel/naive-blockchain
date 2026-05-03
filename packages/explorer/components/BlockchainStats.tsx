@@ -18,9 +18,7 @@ const StatCard = ({ label, value }: StatCardProps) => (
     )}
   >
     <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-    <p className="text-2xl font-semibold text-card-foreground font-mono tracking-tight">
-      {value}
-    </p>
+    <p className="text-2xl font-semibold text-card-foreground font-mono tracking-tight">{value}</p>
   </div>
 );
 
@@ -35,10 +33,7 @@ export const BlockchainStats = () => {
         label="24h Transactions"
         value={stats.transactionsInThePast24Hours.toLocaleString()}
       />
-      <StatCard
-        label="Avg Block Time"
-        value={Duration.format(stats.avgBlockTime)}
-      />
+      <StatCard label="Avg Block Time" value={Duration.format(stats.avgBlockTime)} />
     </div>
   );
 };

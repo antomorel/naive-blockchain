@@ -23,8 +23,8 @@ export const getBlockchainStats = Effect.fn("getBlockchainStats")(function* () {
     if (Option.isNone(previousBlock)) break;
 
     const interval = DateTime.distance(
-      currentBlock.header.timestamp,
-      previousBlock.value.header.timestamp
+      previousBlock.value.header.timestamp,
+      currentBlock.header.timestamp
     );
     blockIntervals.push(interval);
 

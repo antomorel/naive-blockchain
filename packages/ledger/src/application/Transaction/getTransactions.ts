@@ -1,5 +1,5 @@
 import type { Transaction } from "@blockchain/core/Transaction/Transaction";
-import { Array, DateTime, Effect, Option, Schema } from "effect";
+import { Array, Effect, Option, Schema } from "effect";
 import { BlockchainRepository } from "../../domain/BlockchainRepository.js";
 
 const isCoinbase = (tx: Transaction): boolean =>
@@ -38,8 +38,6 @@ export const getTransactions = Effect.fn("getTransactions")(function* ({
     getTransactions({ skip, take })
   );
 
-  const now = yield* DateTime.now;
-
   return yield* Effect.forEach(
     transactions,
     ({ transaction, blockTimestamp }) =>
@@ -51,7 +49,7 @@ export const getTransactions = Effect.fn("getTransactions")(function* ({
           from,
           to: getTo(transaction),
           amount: getTotalAmount(transaction),
-          time: DateTime.distance(blockTimestamp, now)
+          time: blockTimestamp
         };
       }),
     { concurrency: "unbounded" }

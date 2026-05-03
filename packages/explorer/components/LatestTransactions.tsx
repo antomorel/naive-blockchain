@@ -1,6 +1,5 @@
 "use client";
 
-import { Duration } from "effect";
 import {
   Table,
   TableBody,
@@ -9,8 +8,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { truncateAddress } from "@/lib/utils";
 import { useTransactions } from "@/hooks/useTransactions";
+import { truncateAddress } from "@/lib/utils";
+import { DateTime } from "effect";
 
 export const LatestTransactions = () => {
   const { data } = useTransactions({ skip: 0, take: 8 });
@@ -67,7 +67,11 @@ export const LatestTransactions = () => {
                 {tx.amount.toLocaleString()}
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
-                {Duration.format(tx.time)}
+                {DateTime.format(tx.time, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                  locale: "en-US"
+                })}
               </TableCell>
             </TableRow>
           ))}

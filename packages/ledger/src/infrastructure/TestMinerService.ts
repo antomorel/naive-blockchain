@@ -40,7 +40,7 @@ export const mineNext = Effect.fn("mineBlock")(function* (
         nonce
       });
 
-      yield* Effect.sleep(Duration.millis(200));
+      yield* Effect.sleep(Duration.millis(50));
     }),
     step: () => {}
   });

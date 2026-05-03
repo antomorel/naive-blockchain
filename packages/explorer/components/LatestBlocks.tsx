@@ -1,6 +1,5 @@
 "use client";
 
-import { Duration } from "effect";
 import {
   Table,
   TableBody,
@@ -9,8 +8,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { truncateAddress, formatBytes } from "@/lib/utils";
 import { useBlocks } from "@/hooks/useBlocks";
+import { formatBytes, truncateAddress } from "@/lib/utils";
+import { DateTime } from "effect";
 
 export const LatestBlocks = () => {
   const { data } = useBlocks({ skip: 0, take: 8 });
@@ -52,7 +52,11 @@ export const LatestBlocks = () => {
                 {formatBytes(block.size)}
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
-                {Duration.format(block.time)}
+                {DateTime.format(block.time, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                  locale: "en-US"
+                })}
               </TableCell>
             </TableRow>
           ))}
