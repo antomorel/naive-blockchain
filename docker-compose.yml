@@ -1,0 +1,23 @@
+services:
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: blockchain-synapse
+    restart: unless-stopped
+    environment:
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_SERVER_NAME=localhost
+      - SYNAPSE_REPORT_STATS=no
+      - UID=1000
+      - GID=1000
+    volumes:
+      - ./infra/synapse/homeserver.yaml:/data/homeserver.yaml:ro
+      - ./infra/synapse/localhost.log.config:/data/localhost.log.config:ro
+      - ./infra/data:/data
+    ports:
+      - "8008:8008"
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

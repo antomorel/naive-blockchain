@@ -1,0 +1,56 @@
+# Synapse Configuration for Naive Blockchain P2P Network
+# This is a minimal configuration for local development/testing
+
+server_name: "localhost"
+pid_file: /data/homeserver.pid
+public_baseurl: "http://localhost:8008/"
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: false
+    bind_addresses: ["0.0.0.0"]
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: sqlite3
+  args:
+    database: /data/homeserver.db
+
+log_config: "/data/localhost.log.config"
+
+media_store_path: /data/media_store
+max_upload_size: 10M
+
+enable_registration: false
+enable_registration_without_verification: false
+
+registration_shared_secret: "HFjv+L5r@41xwt0yWoZGE_^,;4d#frmlz.3F*Ru;9o,~HVgl8c"
+
+federation_domain_whitelist: []
+
+presence:
+  enabled: false
+
+url_preview_enabled: false
+
+signing_key_path: "/data/localhost.signing.key"
+
+trusted_key_servers: []
+
+suppress_key_server_warning: true
+
+report_stats: false
+
+macaroon_secret_key: "cjPX7ejWU^A#nB~4byqHVkNzadJ6.5rHArejtdCN_+XIrM;xxM"
+
+form_secret: "Bs7&lK6Ot;:UaW4.ER~K;Lo^LaAgY#&pvfvp@B07ED5P&TxkSo"
+
+retention:
+  enabled: true
+  default_policy:
+    min_lifetime: 1d
+    max_lifetime: 30d
