@@ -10,8 +10,9 @@ import { Blockchain } from "../../domain/Blockchain.js";
 import { BlockchainRepository } from "../../domain/BlockchainRepository.js";
 import { COINBASE_AMOUNT } from "../../domain/constants.js";
 import { MinerService } from "../../domain/Miner.js";
+import { NetworkService } from "../../domain/network/NetworkService.js";
 import { UTXOSet } from "../../domain/UTXOSet.js";
-import { UpdateBlockchainAfterMinedBlockWorkflow } from "./UpdateBlockchainAfterMinedBlockWorkflow.js";
+import { ApplyBlockWorkflow } from "../Blockchain/ApplyBlockWorkflow.js";
 
 const createCoinbaseTransaction = (minerAddress: Address, blockHeight: number) =>
   Effect.gen(function* () {
@@ -61,10 +62,13 @@ export const mineNextBlock = Effect.fn("mineNextBlock")(function* (minerAddress:
 
   const consumedUtxos = yield* collectConsumedUtxos(allTransactions);
 
-  yield* UpdateBlockchainAfterMinedBlockWorkflow.execute({
-    minedBlock,
+  yield* ApplyBlockWorkflow.execute({
+    block: minedBlock,
     consumedUtxos,
-    mempool,
-    allTransactions
+    mempoolToRestore: mempool
   });
+
+  yield* NetworkService.use(
+    ({ broadcastBlock }) => Effect.ignore(broadcastBlock(minedBlock)) // eslint-disable-line
+  );
 });

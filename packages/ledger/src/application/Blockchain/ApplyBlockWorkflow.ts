@@ -11,6 +11,18 @@ import {
 } from "../../domain/BlockchainRepository.js";
 import { UTXOPersistenceError, UTXOSet } from "../../domain/UTXOSet.js";
 
+export const ApplyBlockWorkflow = Workflow.make({
+  name: "ApplyBlockWorkflow",
+  payload: {
+    block: Block,
+    consumedUtxos: Schema.Array(UTXO),
+    mempoolToRestore: Schema.Array(Transaction)
+  },
+  success: Block,
+  error: Schema.Union([BlockchainPersistenceError, UTXOPersistenceError]),
+  idempotencyKey: ({ block }) => block.hash
+});
+
 const updateUTXOSet = (transactions: ReadonlyArray<Transaction>) =>
   Effect.gen(function* () {
     const { add, remove } = yield* UTXOSet;
@@ -33,36 +45,24 @@ const updateUTXOSet = (transactions: ReadonlyArray<Transaction>) =>
     yield* add(newUtxos);
   });
 
-export const UpdateBlockchainAfterMinedBlockWorkflow = Workflow.make({
-  name: "UpdateBlockchainAfterMinedBlockWorkflow",
-  payload: {
-    minedBlock: Block,
-    consumedUtxos: Schema.Array(UTXO),
-    mempool: Schema.Array(Transaction),
-    allTransactions: Schema.Array(Transaction)
-  },
-  success: Block,
-  error: Schema.Union([BlockchainPersistenceError, UTXOPersistenceError]),
-  idempotencyKey: ({ minedBlock }) => minedBlock.hash
-});
-
-export const MineBlockWorkflowLayer = UpdateBlockchainAfterMinedBlockWorkflow.toLayer(
-  Effect.fn(function* ({ minedBlock, allTransactions, consumedUtxos, mempool }) {
+export const ApplyBlockWorkflowLayer = ApplyBlockWorkflow.toLayer(
+  Effect.fn(function* ({ block, consumedUtxos, mempoolToRestore }) {
     const { addBlock, removeLastBlock, clearMinedTransactions, restoreMempool } =
       yield* BlockchainRepository;
 
     const utxoSet = yield* UTXOSet;
+    const transactions = block.transactions;
 
     yield* Activity.make({
       name: "AddBlock",
       success: Blockchain,
       error: BlockchainPersistenceError,
-      execute: addBlock(minedBlock)
+      execute: addBlock(block)
     }).pipe(
-      UpdateBlockchainAfterMinedBlockWorkflow.withCompensation(
+      ApplyBlockWorkflow.withCompensation(
         Effect.fn(function* () {
-          yield* Effect.logWarning(`Compensating: removing block ${minedBlock.hash}`);
-          yield* removeLastBlock(minedBlock.hash).pipe(Effect.eventually);
+          yield* Effect.logWarning(`Compensating: removing block ${block.hash}`);
+          yield* removeLastBlock(block.hash).pipe(Effect.eventually);
         })
       )
     );
@@ -71,14 +71,12 @@ export const MineBlockWorkflowLayer = UpdateBlockchainAfterMinedBlockWorkflow.to
       name: "UpdateUTXOSet",
       success: Schema.Void,
       error: UTXOPersistenceError,
-      execute: updateUTXOSet(allTransactions)
+      execute: updateUTXOSet(transactions)
     }).pipe(
-      UpdateBlockchainAfterMinedBlockWorkflow.withCompensation(
+      ApplyBlockWorkflow.withCompensation(
         Effect.fn(function* () {
           yield* Effect.logWarning(`Compensating: reversing UTXO changes`);
-          yield* utxoSet
-            .reverseTransactions(allTransactions, consumedUtxos)
-            .pipe(Effect.eventually);
+          yield* utxoSet.reverseTransactions(transactions, consumedUtxos).pipe(Effect.eventually);
         })
       )
     );
@@ -87,18 +85,18 @@ export const MineBlockWorkflowLayer = UpdateBlockchainAfterMinedBlockWorkflow.to
       name: "ClearMempool",
       success: Blockchain,
       error: BlockchainPersistenceError,
-      execute: clearMinedTransactions(Array.map(mempool, (tx) => tx.id))
+      execute: clearMinedTransactions(Array.map(transactions, (tx) => tx.id))
     }).pipe(
-      UpdateBlockchainAfterMinedBlockWorkflow.withCompensation(
+      ApplyBlockWorkflow.withCompensation(
         Effect.fn(function* () {
           yield* Effect.logWarning(`Compensating: restoring mempool`);
-          yield* restoreMempool(mempool).pipe(Effect.eventually);
+          yield* restoreMempool(mempoolToRestore).pipe(Effect.eventually);
         })
       )
     );
 
-    yield* Effect.logInfo(`Mined block ${minedBlock.height} with hash ${minedBlock.hash}`);
+    yield* Effect.logInfo(`Applied block: height=${block.height}, hash=${block.hash}`);
 
-    return minedBlock;
+    return block;
   })
 );
