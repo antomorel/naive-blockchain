@@ -2,10 +2,16 @@ import { BadRequestError, InternalServerError } from "@blockchain/ledger-api/err
 import { TransactionRpcs } from "@blockchain/ledger-api/rpc/Transaction";
 import { Effect } from "effect";
 import { sendTransaction } from "../../application/Transaction/sendTransaction";
+import { NetworkService } from "../../domain/network/NetworkService";
 
 export const TransactionRpcHandlers = TransactionRpcs.toLayer({
   sendTransaction: ({ transaction }) =>
     sendTransaction(transaction).pipe(
+      Effect.tap(() =>
+        NetworkService.use(
+          ({ broadcastTransaction }) => Effect.ignore(broadcastTransaction(transaction)) // eslint-disable-line
+        )
+      ),
       Effect.catchTags({
         BlockchainPersistenceError: () =>
           Effect.fail(new InternalServerError({ message: "An unexpected error occurred" })),
