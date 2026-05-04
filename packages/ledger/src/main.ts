@@ -4,6 +4,7 @@ import { WorkflowEngine } from "effect/unstable/workflow";
 import { ApplyBlockWorkflowLayer } from "./application/Blockchain/ApplyBlockWorkflow";
 import { runMiner } from "./application/Mining/runMiner";
 import { listenForIncomingBlocks } from "./application/Network/listenForIncomingBlocks";
+import { listenForIncomingTransactions } from "./application/Network/listenForIncomingTransactions";
 import { LedgerConfig, LedgerConfigLive, MatrixConfigLive } from "./config";
 import { MatrixNetworkService } from "./infrastructure/network/MatrixNetworkService";
 import { TestMinerService } from "./infrastructure/TestMinerService";
@@ -22,9 +23,10 @@ const LoggerLive = Logger.layer([
 Effect.all(
   [
     runMiner().pipe(Effect.when(LedgerConfig.useSync((config) => config.shouldMine))),
-    listenForIncomingBlocks(),
+    listenForIncomingTransactions(),
+    Layer.launch(HttpServerLive),
     Layer.launch(RpcServerLive),
-    Layer.launch(HttpServerLive)
+    listenForIncomingBlocks()
   ],
   { concurrency: "unbounded" }
 ).pipe(
